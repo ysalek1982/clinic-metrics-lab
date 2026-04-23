@@ -4,12 +4,14 @@ import type { Patient, Alert, AnthropometrySession, ScreeningResult, EvolutionEn
 // DEMO DATA — Realistic across multiple specialty packs
 // ============================================================
 
+import type { PackId } from "@/types/domain";
+
 export const DEMO_ORG = {
   id: "org-1",
   name: "Hospital Universitario San Mateo",
   type: "hospital" as const,
   branches: ["Sede Central", "Torre Materno-Infantil", "Centro de Alto Rendimiento"],
-  activePacks: ["clinical", "pediatric", "gineco", "enteral", "sport", "geriatric"] as const,
+  activePacks: ["clinical", "pediatric", "gineco", "enteral", "sport", "geriatric"] as PackId[],
 };
 
 export const DEMO_USER = {
