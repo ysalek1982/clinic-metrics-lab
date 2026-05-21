@@ -178,5 +178,5 @@ export const EVOLUTIONS: EvolutionEntry[] = [
 
 export const PLANS: NutritionPlan[] = [
   { id: "pl-1", patientId: "p-004", type: "oral", kcal: 4200, protein_g: 168, carbs_g: 588, fat_g: 117, fluids_ml: 4500, diet: "Alto rendimiento ciclismo", restrictions: [], startDate: "2025-03-25", status: "active" },
-  { id: "pl-2", patientId: "p-001", type: "enteral", kcal: 1850, protein_g: 92, carbs_g: 210, fat_g: 70, fluids_ml: 1500, diet: "Fórmula hipercalórica hiperproteica", restrictions: ["Lactosa"], startDate: "2025-04-09", status: "active" },
+  { id: "pl-2", patientId: "p-001", type: "enteral", kcal: 1850, protein_g: 92, carbs_g: 210, fat_g: 70, fluids_ml: 1500, diet: "Formula hipercalórica hiperproteica", restrictions: ["Lactosa"], startDate: "2025-04-09", status: "active" },
 ];

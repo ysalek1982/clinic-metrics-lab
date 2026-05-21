@@ -1,15 +1,37 @@
 import { create } from "zustand";
 import type { PackId } from "@/types/domain";
-import { DEMO_ORG } from "@/data/demo";
+
+const ACTIVE_TENANT_STORAGE_KEY = "nutri.activeTenantId";
+
+function readStoredTenantId() {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(ACTIVE_TENANT_STORAGE_KEY);
+}
+
+function writeStoredTenantId(tenantId: string | null) {
+  if (typeof window === "undefined") return;
+
+  if (tenantId) {
+    window.localStorage.setItem(ACTIVE_TENANT_STORAGE_KEY, tenantId);
+    return;
+  }
+
+  window.localStorage.removeItem(ACTIVE_TENANT_STORAGE_KEY);
+}
 
 interface AppState {
   activePack: PackId | "all";
-  setActivePack: (p: PackId | "all") => void;
-  org: typeof DEMO_ORG;
+  activeTenantId: string | null;
+  setActivePack: (packId: PackId | "all") => void;
+  setActiveTenant: (tenantId: string | null) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
   activePack: "all",
-  setActivePack: (p) => set({ activePack: p }),
-  org: DEMO_ORG,
+  activeTenantId: readStoredTenantId(),
+  setActivePack: (packId) => set({ activePack: packId }),
+  setActiveTenant: (tenantId) => {
+    writeStoredTenantId(tenantId);
+    set({ activeTenantId: tenantId });
+  },
 }));

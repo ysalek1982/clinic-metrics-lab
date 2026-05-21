@@ -3,7 +3,7 @@ import type { PackDefinition, PackId } from "@/types/domain";
 export const PACKS: Record<PackId, PackDefinition> = {
   clinical: {
     id: "clinical",
-    name: "Clínico Hospitalario",
+    name: "Clínico hospitalario",
     shortName: "Clínico",
     description: "Hospitalización, consulta externa, screening y soporte nutricional general.",
     color: "pack-clinical",
@@ -12,7 +12,7 @@ export const PACKS: Record<PackId, PackDefinition> = {
   },
   pediatric: {
     id: "pediatric",
-    name: "Pediatría & Crecimiento",
+    name: "Pediatría y crecimiento",
     shortName: "Pediatría",
     description: "Curvas de crecimiento, percentiles, z-scores y seguimiento longitudinal infantil.",
     color: "pack-pediatric",
@@ -30,7 +30,7 @@ export const PACKS: Record<PackId, PackDefinition> = {
   },
   gineco: {
     id: "gineco",
-    name: "Gineco-Obstetricia",
+    name: "Gineco-obstetricia",
     shortName: "Gineco",
     description: "Embarazo, lactancia, ganancia gestacional y micronutrientes.",
     color: "pack-gineco",
@@ -39,7 +39,7 @@ export const PACKS: Record<PackId, PackDefinition> = {
   },
   enteral: {
     id: "enteral",
-    name: "Nutrición Enteral",
+    name: "Nutrición enteral",
     shortName: "Enteral",
     description: "Sondas, fórmulas, infusión, tolerancia y monitoreo digestivo.",
     color: "pack-enteral",
@@ -48,7 +48,7 @@ export const PACKS: Record<PackId, PackDefinition> = {
   },
   parenteral: {
     id: "parenteral",
-    name: "Nutrición Parenteral",
+    name: "Nutrición parenteral",
     shortName: "Parenteral",
     description: "Prescripción IV, macros, osmolaridad y checklist de seguridad.",
     color: "pack-enteral",
@@ -57,7 +57,7 @@ export const PACKS: Record<PackId, PackDefinition> = {
   },
   sport: {
     id: "sport",
-    name: "Nutrición Deportiva",
+    name: "Nutrición deportiva",
     shortName: "Deportivo",
     description: "Antropometría ISAK, somatotipo, periodización y rendimiento.",
     color: "pack-sport",
@@ -68,7 +68,7 @@ export const PACKS: Record<PackId, PackDefinition> = {
     id: "onco",
     name: "Oncología",
     shortName: "Onco",
-    description: "Caquexia, sarcopenia, soporte nutricional oncológico.",
+    description: "Caquexia, sarcopenia y soporte nutricional oncológico.",
     color: "pack-onco",
     cssVar: "--pack-onco",
     icon: "Activity",
@@ -93,7 +93,7 @@ export const PACKS: Record<PackId, PackDefinition> = {
   },
   endocrine: {
     id: "endocrine",
-    name: "Endocrino & Obesidad",
+    name: "Endocrino y obesidad",
     shortName: "Endocrino",
     description: "Diabetes, obesidad, síndrome metabólico y composición corporal.",
     color: "pack-clinical",
@@ -111,7 +111,7 @@ export const PACKS: Record<PackId, PackDefinition> = {
   },
   wellness: {
     id: "wellness",
-    name: "Wellness Corporativo",
+    name: "Wellness corporativo",
     shortName: "Wellness",
     description: "Programas preventivos, hábitos y composición corporal.",
     color: "pack-sport",

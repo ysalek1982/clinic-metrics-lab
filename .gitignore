@@ -9,8 +9,30 @@ lerna-debug.log*
 
 node_modules
 dist
+build
 dist-ssr
 *.local
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+supabase/.env
+*.pem
+*.key
+
+# Browser/E2E auth state
+playwright/.auth
+playwright/.auth/
+storageState.json
+artifacts/e2e/**/storageState.json
+
+# Generated validation artifacts
+artifacts/
+test-results/
+playwright-report/
 
 # Editor directories and files
 .vscode/*

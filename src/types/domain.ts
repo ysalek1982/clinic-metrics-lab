@@ -1,5 +1,5 @@
 // ============================================================
-// NUTRITION OS — Domain Types
+// Nutri - Domain Types
 // Core entities + pack-specific extensions
 // ============================================================
 
@@ -41,8 +41,8 @@ export interface Organization {
   type: "hospital" | "clinic" | "sports_center" | "private" | "university" | "pediatric_center";
   branches: string[];
   activePacks: PackId[];
-  logo?: string;
-  primaryColor?: string;
+  logo: string;
+  primaryColor: string;
 }
 
 export interface User {
@@ -50,7 +50,7 @@ export interface User {
   name: string;
   email: string;
   role: RoleId;
-  avatar?: string;
+  avatar: string;
   org_id: string;
 }
 
@@ -69,36 +69,36 @@ export interface Patient {
   packs: PackId[];
   diagnoses: string[];
   allergies: string[];
-  ward?: string;
-  bed?: string;
-  admissionDate?: string;
-  attendingPhysician?: string;
-  lastEvaluation?: string;
-  nextFollowUp?: string;
-  avatar?: string;
+  ward: string;
+  bed: string;
+  admissionDate: string;
+  attendingPhysician: string;
+  lastEvaluation: string;
+  nextFollowUp: string;
+  avatar: string;
   // pack-specific snapshots
-  pediatric?: {
-    gestationalAgeWeeks?: number;
-    weightForAgeZ?: number;
-    heightForAgeZ?: number;
-    bmiForAgeZ?: number;
+  pediatric: {
+    gestationalAgeWeeks: number;
+    weightForAgeZ: number;
+    heightForAgeZ: number;
+    bmiForAgeZ: number;
   };
-  pregnancy?: {
+  pregnancy: {
     weeksGestation: number;
     prePregnancyWeight: number;
     expectedGain: [number, number];
     actualGain: number;
   };
-  enteral?: {
+  enteral: {
     tubeType: string;
     formula: string;
     rateMlH: number;
     totalKcal: number;
     tolerance: "good" | "moderate" | "poor";
   };
-  sport?: {
+  sport: {
     discipline: string;
-    position?: string;
+    position: string;
     category: string;
     phase: string;
     objective: string;
@@ -109,7 +109,7 @@ export interface AnthropometryMeasurement {
   site: string;
   value: number;
   unit: string;
-  attempt?: number;
+  attempt: number;
   category: "basic" | "skinfold" | "girth" | "length" | "breadth" | "depth";
 }
 
@@ -121,18 +121,18 @@ export interface AnthropometrySession {
   protocol: string;
   measurements: AnthropometryMeasurement[];
   derived: {
-    bmi?: number;
-    sumSkinfolds6?: number;
-    sumSkinfolds8?: number;
-    fatMassPct?: number;
-    fatFreeMassKg?: number;
-    muscleMassKg?: number;
-    waistHip?: number;
-    somatotype?: { endo: number; meso: number; ecto: number };
+    bmi: number;
+    sumSkinfolds6: number;
+    sumSkinfolds8: number;
+    fatMassPct: number;
+    fatFreeMassKg: number;
+    muscleMassKg: number;
+    waistHip: number;
+    somatotype: { endo: number; meso: number; ecto: number };
   };
   formulaVersionId: string;
-  qualityIndex?: number; // TEM-derived
-  notes?: string;
+  qualityIndex: number; // TEM-derived
+  notes: string;
 }
 
 export interface ScreeningResult {
@@ -151,12 +151,12 @@ export interface Alert {
   id: string;
   patientId: string;
   patientName: string;
-  ward?: string;
+  ward: string;
   type: "nutritional_risk" | "weight_loss" | "tolerance" | "lab_value" | "missing_data" | "follow_up";
   severity: RiskLevel;
   message: string;
   createdAt: string;
-  acknowledged?: boolean;
+  acknowledged: boolean;
 }
 
 export interface NutritionPlan {
@@ -169,7 +169,7 @@ export interface NutritionPlan {
   fat_g: number;
   fluids_ml: number;
   diet: string;
-  texture?: string;
+  texture: string;
   restrictions: string[];
   startDate: string;
   status: "active" | "scheduled" | "ended";
@@ -179,7 +179,7 @@ export interface EvolutionEntry {
   id: string;
   patientId: string;
   date: string;
-  weightKg?: number;
+  weightKg: number;
   notes: string;
   author: string;
   type: "anthropometry" | "screening" | "clinical" | "plan_change" | "lab" | "note";
@@ -194,3 +194,4 @@ export interface PackDefinition {
   cssVar: string; // --pack-*
   icon: string; // lucide name
 }
+

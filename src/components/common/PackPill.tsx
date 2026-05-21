@@ -2,7 +2,7 @@ import { PACKS } from "@/data/packs";
 import { cn } from "@/lib/utils";
 import type { PackId } from "@/types/domain";
 
-export function PackPill({ pack, size = "sm" }: { pack: PackId; size?: "xs" | "sm" }) {
+export function PackPill({ pack, size = "sm" }: { pack: PackId; size: "xs" | "sm" }) {
   const p = PACKS[pack];
   if (!p) return null;
   return (

@@ -12,6 +12,55 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) {
+            return undefined;
+          }
+
+          if (id.includes("react") || id.includes("scheduler")) {
+            return "vendor-react";
+          }
+
+          if (id.includes("@supabase")) {
+            return "vendor-supabase";
+          }
+
+          if (id.includes("@tanstack")) {
+            return "vendor-query";
+          }
+
+          if (id.includes("@radix-ui") || id.includes("cmdk") || id.includes("vaul")) {
+            return "vendor-ui";
+          }
+
+          if (id.includes("lucide-react")) {
+            return "vendor-icons";
+          }
+
+          if (id.includes("recharts") || id.includes("d3-")) {
+            return "vendor-charts";
+          }
+
+          if (id.includes("jspdf")) {
+            return "vendor-pdf";
+          }
+
+          if (id.includes("html2canvas")) {
+            return "vendor-canvas";
+          }
+
+          if (id.includes("date-fns") || id.includes("zod") || id.includes("zustand")) {
+            return "vendor-utils";
+          }
+
+          return undefined;
+        },
+      },
+    },
+  },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
