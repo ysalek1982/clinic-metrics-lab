@@ -15,9 +15,9 @@ import { useTenantRuntime } from "@/hooks/useTenantRuntime";
 import { useTenantAlerts } from "@/hooks/useClinicalData";
 import { useAuthorization } from "@/hooks/useAuthorization";
 import { useUnreadMessageCount } from "@/hooks/useMessages";
-import { presentStatus } from "@/lib/presentation";
 import { cn } from "@/lib/utils";
 import type { PackId } from "@/types/domain";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 
 function formatPlanId(planId?: string | null) {
   return (planId ?? "plan").replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -46,14 +46,14 @@ export function AppTopbar() {
     alertResult?.data?.filter((alert) => alert.status === "active" || alert.status === "attended").length ?? 0;
   const notificationCount = alertCount + unreadMessageCount;
   const canUseCopilot = hasPermission("ai.assist");
-  const tenantName = activeTenant?.name ?? (authLoading ? "Validando sesión" : isAuthenticated ? "Selecciona tenant" : "Modo demo");
+  const tenantName = activeTenant?.name ?? (authLoading ? "Validando sesion" : isAuthenticated ? "Selecciona tenant" : "Modo demo");
   const tenantSubtitle = activeTenant
     ? "Sede Central"
     : authLoading
       ? "Contexto seguro"
       : isAuthenticated
         ? "Sin tenant activo"
-        : "Catálogo preventa";
+        : "Catalogo preventa";
   const tenantInitials = activeTenant?.branding?.logoInitials ?? (authLoading ? "VS" : isAuthenticated ? "ST" : "NT");
 
   function handlePackSelection(packId: PackId | "all") {
@@ -70,21 +70,21 @@ export function AppTopbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-border bg-surface/55 px-4 backdrop-blur-md">
+    <header className="sticky top-0 z-40 flex min-h-16 items-center gap-2 border-b border-border bg-surface/55 px-3 py-2 backdrop-blur-md sm:h-16 sm:flex-nowrap sm:gap-3 sm:px-4 sm:py-0">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button type="button" className="flex h-10 items-center gap-2 rounded-md px-2.5 text-left transition-colors hover:bg-surface-raised">
+          <button type="button" className="flex h-10 max-w-[190px] items-center gap-2 rounded-md px-2 text-left transition-colors hover:bg-surface-raised sm:max-w-[280px] sm:px-2.5">
             <div className="flex h-7 w-7 items-center justify-center rounded bg-primary/15">
               <span className="text-[10px] font-mono font-bold text-primary">
                 {tenantInitials}
               </span>
             </div>
 
-            <div className="leading-tight">
-              <div className="max-w-[220px] truncate text-[12px] font-medium">
+            <div className="min-w-0 leading-tight">
+              <div className="max-w-[120px] truncate text-[12px] font-medium sm:max-w-[220px]">
                 {tenantName}
               </div>
-              <div className="text-[10px] font-mono text-muted-foreground">
+              <div className="truncate text-[10px] font-mono text-muted-foreground">
                 {tenantSubtitle}
               </div>
             </div>
@@ -124,83 +124,85 @@ export function AppTopbar() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <div className="h-6 w-px bg-border" />
+      <div className="hidden h-6 w-px bg-border md:block" />
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className={cn(
-                "flex h-8 items-center gap-2 rounded-full border px-3 text-[12px] font-medium transition-colors",
+      <div className="hidden md:block">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                  "flex h-8 items-center gap-2 rounded-full border px-3 text-[12px] font-medium transition-colors",
+                  currentPack
+                    ? "border-transparent text-foreground"
+                    : "border-border text-muted-foreground hover:text-foreground",
+              )}
+              style={
                 currentPack
-                  ? "border-transparent text-foreground"
-                  : "border-border text-muted-foreground hover:text-foreground",
-            )}
-            style={
-              currentPack
-                ? {
-                    background: `hsl(var(${currentPack.cssVar}) / 0.12)`,
-                    color: `hsl(var(${currentPack.cssVar}))`,
-                    boxShadow: `inset 0 0 0 1px hsl(var(${currentPack.cssVar}) / 0.4)`,
-                  }
-                : undefined
-            }
-          >
-            <span
-              className="status-dot"
-              style={{ background: currentPack ? `hsl(var(${currentPack.cssVar}))` : "hsl(var(--muted-foreground))" }}
-            />
-            {currentPack ? currentPack.shortName : "Todos los packs"}
-            <ChevronDown className="h-3 w-3 opacity-70" />
-          </button>
-        </DropdownMenuTrigger>
+                  ? {
+                      background: `hsl(var(${currentPack.cssVar}) / 0.12)`,
+                      color: `hsl(var(${currentPack.cssVar}))`,
+                      boxShadow: `inset 0 0 0 1px hsl(var(${currentPack.cssVar}) / 0.4)`,
+                    }
+                  : undefined
+              }
+            >
+              <span
+                className="status-dot"
+                style={{ background: currentPack ? `hsl(var(${currentPack.cssVar}))` : "hsl(var(--muted-foreground))" }}
+              />
+              {currentPack ? currentPack.shortName : "Todos los packs"}
+              <ChevronDown className="h-3 w-3 opacity-70" />
+            </button>
+          </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="start" className="w-60">
-          <DropdownMenuItem onClick={() => handlePackSelection("all")}>
-            <span className="status-dot mr-2 bg-muted-foreground" /> Todos los packs
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          <DropdownMenuContent align="start" className="w-60">
+            <DropdownMenuItem onClick={() => handlePackSelection("all")}>
+              <span className="status-dot mr-2 bg-muted-foreground" /> Todos los packs
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
 
-          {enabledPacks
-            .filter((packId) => PACKS[packId])
-            .map((packId) => {
-              const pack = PACKS[packId];
-              return (
-                <DropdownMenuItem key={packId} onClick={() => handlePackSelection(packId)}>
-                  <span className="status-dot mr-2" style={{ background: `hsl(var(${pack.cssVar}))` }} />
-                  {pack.name}
-                </DropdownMenuItem>
-              );
-            })}
-        </DropdownMenuContent>
-      </DropdownMenu>
+            {enabledPacks
+              .filter((packId) => PACKS[packId])
+              .map((packId) => {
+                const pack = PACKS[packId];
+                return (
+                  <DropdownMenuItem key={packId} onClick={() => handlePackSelection(packId)}>
+                    <span className="status-dot mr-2" style={{ background: `hsl(var(${pack.cssVar}))` }} />
+                    {pack.name}
+                  </DropdownMenuItem>
+                );
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
-      <div className="ml-2 max-w-xl flex-1">
+      <div className="ml-2 hidden max-w-xl flex-1 2xl:block">
         <button
           type="button"
           className="flex h-9 w-full items-center gap-2.5 rounded-md border border-border bg-surface-raised/40 px-3 text-[12px] text-muted-foreground transition-colors hover:border-border/70 hover:bg-surface-raised"
         >
           <Search className="h-3.5 w-3.5" />
-          <span className="flex-1 text-left">Buscar paciente, MRN, evaluación...</span>
+          <span className="flex-1 text-left">Buscar paciente, MRN, evaluacion...</span>
           <span className="kbd">Ctrl</span>
           <span className="kbd">K</span>
         </button>
       </div>
 
-      <div className="flex items-center gap-1.5">
+      <div className="ml-auto flex shrink-0 items-center gap-1.5">
         <Button
           asChild
           size="sm"
-          className="h-8 gap-1.5 border-0 text-[12px] text-primary-foreground gradient-primary hover:opacity-90"
+          className="hidden h-8 gap-1.5 border-0 text-[12px] text-primary-foreground gradient-primary hover:opacity-90 sm:inline-flex"
         >
           <Link to="/app/evaluations/new">
-            <Plus className="h-3.5 w-3.5" /> Nueva evaluación
+            <Plus className="h-3.5 w-3.5" /> Nueva evaluacion
           </Link>
         </Button>
 
         {canUseCopilot && (
           <Button asChild variant="outline" size="sm" className="hidden h-8 gap-1.5 text-[12px] lg:inline-flex">
-            <Link to="/app/copilot" aria-label="Abrir Copilot clínico">
+            <Link to="/app/copilot" aria-label="Abrir Copilot clinico">
               <Brain className="h-3.5 w-3.5" />
               Copilot
               {alertCount > 0 && (
@@ -215,7 +217,7 @@ export function AppTopbar() {
         <button
           type="button"
           className="relative flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface-raised hover:text-foreground"
-          title={`${alertCount} alertas activas, ${unreadMessageCount} mensajes no leídos`}
+          title={`${alertCount} alertas activas, ${unreadMessageCount} mensajes no leidos`}
         >
           <Bell className="h-4 w-4" />
           {notificationCount > 0 && (
@@ -224,6 +226,8 @@ export function AppTopbar() {
             </span>
           )}
         </button>
+
+        <ThemeToggle />
 
         <div className="mx-1 h-6 w-px bg-border" />
 
@@ -234,17 +238,17 @@ export function AppTopbar() {
                 {user?.initials ?? "ND"}
               </div>
 
-              <div className="hidden text-left leading-tight sm:block">
+              <div className="hidden text-left leading-tight 2xl:block">
                 <div className="text-[11px] font-medium">{user?.name ?? "Modo demo"}</div>
                 <div className="text-[9px] font-mono uppercase text-muted-foreground">
-                    {user?.title ?? (isDemoMode ? "exploración" : "Dir. nutrición")}
+                    {user?.title ?? (isDemoMode ? "exploracion" : "Dir. nutricion")}
                 </div>
               </div>
             </button>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="w-60">
-            <DropdownMenuLabel>{user?.name ?? "Exploración"}</DropdownMenuLabel>
+            <DropdownMenuLabel>{user?.name ?? "Exploracion"}</DropdownMenuLabel>
             <DropdownMenuItem asChild>
               <Link to="/app/users">Mi equipo y permisos</Link>
             </DropdownMenuItem>
@@ -267,10 +271,10 @@ export function AppTopbar() {
             <DropdownMenuSeparator />
 
             {user ? (
-              <DropdownMenuItem onClick={() => void signOut()}>Cerrar sesión</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => void signOut()}>Cerrar sesion</DropdownMenuItem>
             ) : (
               <DropdownMenuItem asChild>
-                <Link to="/login">Iniciar sesión</Link>
+                <Link to="/login">Iniciar sesion</Link>
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>

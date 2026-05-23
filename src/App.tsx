@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { RequireAuthenticatedAccess, RequirePlatformAdmin, RequireTenantAccess, RequireTenantPermission } from "@/features/auth/RouteGuards";
+import { useTheme } from "@/hooks/useTheme";
 import { AppLayout } from "./components/layout/AppLayout";
 
 const queryClient = new QueryClient();
@@ -16,10 +17,12 @@ const ActivateInvite = lazy(() => import("./pages/ActivateInvite"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Dashboard = lazy(() => import("./pages/app/Dashboard"));
+const Account = lazy(() => import("./pages/app/Account"));
 const Copilot = lazy(() => import("./pages/app/Copilot"));
 const ModulesCenter = lazy(() => import("./pages/app/ModulesCenter"));
 const ModuleSettings = lazy(() => import("./pages/app/ModuleSettings"));
 const PlatformAdmin = lazy(() => import("./pages/app/PlatformAdmin"));
+const SaasAdmin = lazy(() => import("./pages/app/SaasAdmin"));
 const TenantSelector = lazy(() => import("./pages/app/TenantSelector"));
 const Patients = lazy(() => import("./pages/app/Patients"));
 const PatientDetail = lazy(() => import("./pages/app/PatientDetail"));
@@ -54,21 +57,24 @@ function RouteLoadingState() {
     <div className="flex min-h-[320px] items-center justify-center px-6 text-center">
       <div>
         <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Nutri</div>
-        <div className="mt-2 text-[13px] text-muted-foreground">Cargando módulo...</div>
+        <div className="mt-2 text-[13px] text-muted-foreground">Cargando modulo...</div>
       </div>
     </div>
   );
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<RouteLoadingState />}>
-            <Routes>
+const App = () => {
+  useTheme();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<RouteLoadingState />}>
+              <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/activate" element={<ActivateInvite />} />
@@ -76,6 +82,7 @@ const App = () => (
               <Route path="/app" element={<AppLayout />}>
                 <Route element={<RequirePlatformAdmin />}>
                   <Route path="platform" element={<PlatformAdmin />} />
+                  <Route path="saas-admin" element={<SaasAdmin />} />
                 </Route>
                 <Route element={<RequireAuthenticatedAccess />}>
                   <Route path="tenants" element={<TenantSelector />} />
@@ -86,6 +93,7 @@ const App = () => (
                 </Route>
                 <Route element={<RequireTenantAccess />}>
                   <Route index element={<Dashboard />} />
+                  <Route path="account" element={<Account />} />
                   <Route path="modules" element={<ModulesCenter />} />
                   <Route element={<RequireTenantPermission permission="ai.assist" />}>
                     <Route path="copilot" element={<Copilot />} />
@@ -140,16 +148,16 @@ const App = () => (
                   <Route element={<RequireTenantPermission permission="reports.export" />}>
                     <Route path="reports" element={<Reports />} />
                   </Route>
-                  <Route element={<RequireTenantPermission permission="settings.manage" />}>
+                  <Route element={<RequireTenantPermission permission="settings.manage" planFeature="settings.manage" />}>
                     <Route path="formulas" element={<Formulas />} />
                     <Route path="organization" element={<Organization />} />
                     <Route path="settings" element={<InstitutionSettings />} />
                     <Route path="module-settings" element={<ModuleSettings />} />
                   </Route>
-                  <Route element={<RequireTenantPermission permission="users.manage" />}>
+                  <Route element={<RequireTenantPermission permission="users.manage" planFeature="users.manage" />}>
                     <Route path="users" element={<UsersRoles />} />
                   </Route>
-                  <Route element={<RequireTenantPermission permission="audit.read" />}>
+                  <Route element={<RequireTenantPermission permission="audit.read" planFeature="audit.read" />}>
                     <Route path="audit" element={<Audit />} />
                   </Route>
                   <Route path="somatocarta" element={<Navigate to="/app/pack/sport/somatocarta" replace />} />
@@ -159,12 +167,13 @@ const App = () => (
                 </Route>
               </Route>
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
