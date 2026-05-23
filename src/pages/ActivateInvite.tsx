@@ -4,24 +4,30 @@ import { ArrowRight, KeyRound, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/features/auth/auth-context";
+import { useSubmitAccessRequest } from "@/hooks/useSaasAdmin";
 import { supabase } from "@/integrations/supabase/client";
+import { validateAccessRequestInput } from "@/lib/saasAdmin";
 
 export default function ActivateInvite() {
   const navigate = useNavigate();
   const { session, user, signInWithPassword, signUpWithPassword, refreshSession } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">(session ? "signin" : "signup");
+  const [activationMode, setActivationMode] = useState<"invite" | "request">("invite");
   const [email, setEmail] = useState(user.source === "supabase" ? user.email : "");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState(user.source === "supabase" ? user.name : "");
   const [title, setTitle] = useState("");
   const [inviteCode, setInviteCode] = useState("");
+  const [requestMessage, setRequestMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const submitAccessRequest = useSubmitAccessRequest();
 
   const isAuthenticated = Boolean(session);
-  const defaultHint = useMemo(() => "Códigos demo: HSM-FOUNDATION-2026 o EP-PERFORMANCE-2026", []);
+  const defaultHint = useMemo(() => "Usa un codigo emitido por el administrador SaaS o solicita acceso.", []);
 
   async function ensureSession() {
     if (session) return { ok: true as const };
@@ -53,6 +59,34 @@ export default function ActivateInvite() {
     if (!sessionResult.ok) {
       setSubmitting(false);
       setError(sessionResult.error);
+      return;
+    }
+
+    if (activationMode === "request") {
+      const validationErrors = validateAccessRequestInput({
+        fullName,
+        jobTitle: title,
+        message: requestMessage,
+      });
+      if (validationErrors.length > 0) {
+        setSubmitting(false);
+        setError(validationErrors[0]);
+        return;
+      }
+
+      try {
+        await submitAccessRequest.mutateAsync({
+          fullName,
+          jobTitle: title,
+          requestedInviteCode: inviteCode || null,
+          message: requestMessage || null,
+        });
+        setMessage("Solicitud enviada. Un administrador SaaS revisara tu acceso y asignara organizacion, rol y plan (free, cortesia o trial).");
+      } catch (requestError) {
+        setError(requestError instanceof Error ? requestError.message : "No se pudo enviar la solicitud de acceso.");
+      } finally {
+        setSubmitting(false);
+      }
       return;
     }
 
@@ -126,6 +160,25 @@ export default function ActivateInvite() {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <Button
+                type="button"
+                variant={activationMode === "invite" ? "default" : "outline"}
+                className={activationMode === "invite" ? "gradient-primary text-primary-foreground border-0" : ""}
+                onClick={() => setActivationMode("invite")}
+              >
+                Tengo codigo
+              </Button>
+              <Button
+                type="button"
+                variant={activationMode === "request" ? "default" : "outline"}
+                className={activationMode === "request" ? "gradient-primary text-primary-foreground border-0" : ""}
+                onClick={() => setActivationMode("request")}
+              >
+                Solicitar acceso
+              </Button>
+            </div>
+
             {!isAuthenticated && (
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <Button type="button" variant={mode === "signup" ? "default" : "outline"} className={mode === "signup" ? "gradient-primary text-primary-foreground border-0" : ""} onClick={() => setMode("signup")}>
@@ -163,9 +216,31 @@ export default function ActivateInvite() {
 
               <div className="space-y-2">
                 <Label htmlFor="inviteCode">Código de invitación</Label>
-                <Input id="inviteCode" value={inviteCode} onChange={(event) => setInviteCode(event.target.value)} placeholder="HSM-FOUNDATION-2026" />
+                <Input
+                  id="inviteCode"
+                  value={inviteCode}
+                  onChange={(event) => setInviteCode(event.target.value)}
+                  placeholder={activationMode === "invite" ? "HSM-FOUNDATION-2026" : "Opcional si ya lo tienes"}
+                  required={activationMode === "invite"}
+                />
                 <div className="text-[11px] text-muted-foreground">{defaultHint}</div>
               </div>
+
+              {activationMode === "request" && (
+                <div className="space-y-2">
+                  <Label htmlFor="requestMessage">Mensaje para administracion</Label>
+                  <Textarea
+                    id="requestMessage"
+                    value={requestMessage}
+                    onChange={(event) => setRequestMessage(event.target.value)}
+                    placeholder="Indica a que organizacion necesitas ingresar y que rol esperas cumplir."
+                    rows={4}
+                  />
+                  <div className="text-[11px] text-muted-foreground">
+                    La solicitud queda pendiente. Para cuenta gratuita, el administrador aprueba plan free y rol basico. No se crea membership automaticamente.
+                  </div>
+                </div>
+              )}
 
               {error && (
                 <div className="rounded-md border border-risk-high/30 bg-risk-high/10 px-3 py-2 text-[12px] text-risk-high">
@@ -180,7 +255,7 @@ export default function ActivateInvite() {
               )}
 
               <Button type="submit" className="w-full gradient-primary text-primary-foreground border-0" disabled={submitting}>
-                {submitting ? "Procesando..." : "Canjear invitación"}
+                {submitting ? "Procesando..." : activationMode === "invite" ? "Canjear invitacion" : "Enviar solicitud"}
                 <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
 

@@ -1,8 +1,15 @@
 import type { PackId, RiskLevel } from "@/types/domain";
 
 export type TenantPlanId =
+  | "free"
+  | "courtesy"
+  | "pro"
+  | "clinic_hospital"
+  | "trial"
   | "starter"
   | "professional"
+  | "clinic"
+  | "hospital"
   | "enterprise"
   | "hospital_enterprise"
   | "sports_performance"
