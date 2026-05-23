@@ -26,8 +26,10 @@ import {
   useTenantPatients,
   useTenantScreenings,
 } from "@/hooks/useClinicalData";
+import { useTenantSubscription } from "@/hooks/useSubscription";
 import { useTenantRuntime } from "@/hooks/useTenantRuntime";
 import { formatInteger, formatPercent } from "@/lib/formatters";
+import { normalizePlanCode } from "@/lib/subscriptionAccess";
 import { resolveViewSource } from "@/lib/view-source";
 
 function metricLabel(key: string) {
@@ -43,7 +45,8 @@ function metricLabel(key: string) {
 export default function Dashboard() {
   const { isAuthenticated } = useAuth();
   const { hasPermission } = useAuthorization();
-  const { activePlan, activeTenant, enabledPacks, source } = useTenantRuntime();
+  const { activeTenant, enabledPacks, plans: planCatalog, source } = useTenantRuntime();
+  const tenantSubscription = useTenantSubscription(activeTenant?.id);
   const { data: patientResult } = useTenantPatients();
   const { data: encounterResult } = useTenantEncounters();
   const { data: alertResult } = useTenantAlerts();
@@ -67,7 +70,7 @@ export default function Dashboard() {
     return (
       <div className="p-6">
         <div className="panel p-6 text-[13px] text-muted-foreground">
-          Selecciona un tenant para cargar el panel institucional.
+          Selecciona un espacio para cargar el panel.
         </div>
       </div>
     );
@@ -98,6 +101,9 @@ export default function Dashboard() {
   }).length;
   const activePlanCount = plans.filter((plan) => plan.status === "active").length;
   const adherence = plans.length > 0 ? Math.round((activePlanCount / plans.length) * 100) : null;
+  const planCode = normalizePlanCode(tenantSubscription.data?.planCode ?? "free");
+  const activePlan = planCatalog.find((plan) => normalizePlanCode(plan.id) === planCode) ?? null;
+  const isPersonalAccount = planCode === "free" || planCode === "pro";
   const trendData = buildTenantTrend({
     encounters: encounters.map((encounter) => encounter.openedAt),
     plans: plans.map((plan) => plan.createdAt),
@@ -110,16 +116,20 @@ export default function Dashboard() {
       <PageHeader
         meta={
           <div className="flex items-center gap-2 flex-wrap">
-            <span>{`${activeTenant?.branding?.commercialName ?? activeTenant?.name ?? "Tenant activo"} · ${activePlan?.name ?? activeTenant?.planId ?? "Plan activo"}`}</span>
+            <span>{`${activeTenant?.branding?.commercialName ?? activeTenant?.name ?? "Espacio activo"} - ${activePlan?.name ?? planCode}`}</span>
             <SourceStateBadge source={viewSource} />
           </div>
         }
-        title="Panel ejecutivo institucional"
-        subtitle="Visión consolidada del estado nutricional, alertas activas y carga clínica."
+        title={isPersonalAccount ? "Panel de mi espacio" : "Panel ejecutivo institucional"}
+        subtitle={
+          isPersonalAccount
+            ? "Vista basica de tu cuenta personal, datos propios y pendientes registrados."
+            : "Vision consolidada del estado nutricional, alertas activas y carga clinica."
+        }
         actions={
           <>
             <Button variant="outline" size="sm" className="h-8 text-[12px]">
-              Últimos 30 días
+              Ultimos 30 dias
             </Button>
             {canReadReports ? (
               <Button asChild size="sm" className="h-8 text-[12px] gradient-primary text-primary-foreground border-0">
@@ -148,7 +158,7 @@ export default function Dashboard() {
       <div className="p-6 space-y-6">
         {viewSource === "fallback" && (
           <div className="panel px-4 py-3 text-[12px] text-muted-foreground">
-            Parte del tenant está usando fallback visual porque no todas las consultas remotas devolvieron datos operativos.
+            Parte del espacio esta usando fallback visual porque no todas las consultas remotas devolvieron datos operativos.
           </div>
         )}
 
@@ -158,7 +168,7 @@ export default function Dashboard() {
               <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Perfil operativo sugerido</div>
               <h3 className="mt-1 text-[16px] font-medium">{suggestedOperationalProfile.label}</h3>
               <p className="mt-1 max-w-3xl text-[12px] leading-5 text-muted-foreground">
-                {suggestedOperationalProfile.description} La seleccion es visual/local hasta tener persistencia tenant-scoped.
+                {suggestedOperationalProfile.description} La seleccion es visual/local hasta tener persistencia por espacio.
               </p>
             </div>
             <Button asChild variant="outline" size="sm" className="h-8 text-[12px]">
@@ -183,7 +193,7 @@ export default function Dashboard() {
           <KpiCard
             label="Pacientes activos"
             value={formatInteger(patients.length, "0")}
-            hint={`${formatInteger(patients.length, "0")} visibles por tenant`}
+            hint={isPersonalAccount ? `${formatInteger(patients.length, "0")} visibles en tu espacio` : `${formatInteger(patients.length, "0")} visibles por tenant`}
             icon={<Users className="w-3 h-3" />}
           />
           <KpiCard
@@ -213,9 +223,9 @@ export default function Dashboard() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
             <div>
               <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                Copilot clínico
+                Copilot clinico
               </div>
-              <h3 className="mt-0.5 text-[15px] font-medium">Top pendientes del tenant</h3>
+              <h3 className="mt-0.5 text-[15px] font-medium">{isPersonalAccount ? "Top pendientes de tu espacio" : "Top pendientes del tenant"}</h3>
             </div>
             {canUseCopilot ? (
               <Button asChild variant="ghost" size="sm" className="text-[12px] text-muted-foreground hover:text-foreground">
@@ -232,7 +242,7 @@ export default function Dashboard() {
           <div className="grid gap-3 p-5 lg:grid-cols-3">
             {!canUseCopilot ? (
               <div className="rounded-md border border-dashed border-border px-4 py-6 text-[13px] text-muted-foreground lg:col-span-3">
-                No tienes permiso para usar el Copilot clínico en este tenant.
+                No tienes permiso para usar el Copilot clinico en este espacio.
               </div>
             ) : copilotContext.todayAttention.length === 0 ? (
               <div className="rounded-md border border-dashed border-border px-4 py-6 text-[13px] text-muted-foreground lg:col-span-3">
@@ -263,16 +273,16 @@ export default function Dashboard() {
             <div className="mb-4 flex items-start justify-between">
               <div>
                 <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
-                  Tendencia institucional
+                  {isPersonalAccount ? "Tendencia de mi espacio" : "Tendencia institucional"}
                 </div>
-                <h3 className="mt-0.5 text-[15px] font-medium">Riesgo, evaluaciones y planes activos</h3>
+                <h3 className="mt-0.5 text-[15px] font-medium">{isPersonalAccount ? "Riesgo, evaluaciones y planes propios" : "Riesgo, evaluaciones y planes activos"}</h3>
               </div>
             </div>
 
             <div className="h-[270px]">
               {trendData.length === 0 ? (
                 <div className="flex h-full items-center justify-center rounded-md border border-dashed border-border text-center text-[13px] text-muted-foreground">
-                  Aún no hay suficientes datos para graficar evolución institucional.
+                  {isPersonalAccount ? "Aun no hay suficientes datos para graficar evolucion de tu espacio." : "Aun no hay suficientes datos para graficar evolucion institucional."}
                 </div>
               ) : (
               <ChartContainer>
@@ -305,8 +315,8 @@ export default function Dashboard() {
           </div>
 
           <div className="panel p-5">
-            <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Índice nutricional global</div>
-            <h3 className="mt-0.5 text-[15px] font-medium">NRS institucional</h3>
+            <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">{isPersonalAccount ? "Indice nutricional de mi espacio" : "Indice nutricional global"}</div>
+            <h3 className="mt-0.5 text-[15px] font-medium">{isPersonalAccount ? "NRS de mi espacio" : "NRS institucional"}</h3>
             <div className="mt-7 flex justify-center">
               <div className="relative h-44 w-44 rounded-full" style={{ background: `conic-gradient(hsl(var(--primary)) 0 72%, hsl(var(--surface-raised)) 72% 100%)` }}>
                 <div className="absolute inset-5 flex flex-col items-center justify-center rounded-full bg-card">
@@ -317,7 +327,7 @@ export default function Dashboard() {
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3 text-[12px]">
               <StatusLine label="Cobertura" value={formatPercent(94)} />
-              <StatusLine label="Reevaluación" value={formatPercent(88)} />
+              <StatusLine label="Reevaluacion" value={formatPercent(88)} />
               <StatusLine label="Adherencia" value={adherence === null ? "No calculado" : formatPercent(adherence)} />
               <StatusLine label="Tiempo medio" value="11 min" />
             </div>
@@ -326,8 +336,8 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
           <div className="panel p-5">
-            <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Distribución por pack</div>
-            <h3 className="mt-1 text-[15px] font-medium">Casos activos · {patients.length}</h3>
+            <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Distribucion por pack</div>
+            <h3 className="mt-1 text-[15px] font-medium">Casos activos - {patients.length}</h3>
             <div className="mt-5 space-y-3">
               {["clinical", "pediatric", "gineco", "enteral", "sport"].map((packId) => {
                 const count = patients.filter((patient) => (patient.activePacks ?? []).includes(packId as typeof patient.activePacks[number])).length;
@@ -351,7 +361,7 @@ export default function Dashboard() {
                 <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
                   Pacientes priorizados
                 </div>
-                <h3 className="mt-0.5 text-[15px] font-medium">Riesgo y seguimiento del tenant activo</h3>
+                <h3 className="mt-0.5 text-[15px] font-medium">{isPersonalAccount ? "Riesgo y seguimiento de tu espacio" : "Riesgo y seguimiento del tenant activo"}</h3>
               </div>
               <Button asChild variant="ghost" size="sm" className="text-[12px] text-muted-foreground hover:text-foreground">
                 <Link to="/app/patients">
@@ -379,7 +389,7 @@ export default function Dashboard() {
               ))}
               {patients.length === 0 && (
                 <div className="px-5 py-10 text-center text-[13px] text-muted-foreground">
-                  Todavía no hay pacientes operativos visibles para el tenant activo.
+                  {isPersonalAccount ? "Todavia no hay pacientes operativos visibles en tu espacio." : "Todavia no hay pacientes operativos visibles para el tenant activo."}
                 </div>
               )}
             </div>
@@ -388,7 +398,7 @@ export default function Dashboard() {
           <div className="panel overflow-hidden">
             <div className="border-b border-border px-5 py-4">
               <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Alertas derivadas</div>
-              <h3 className="mt-0.5 text-[15px] font-medium">Pendientes del tenant activo</h3>
+              <h3 className="mt-0.5 text-[15px] font-medium">{isPersonalAccount ? "Pendientes de tu espacio" : "Pendientes del tenant activo"}</h3>
             </div>
             <div className="divide-y divide-border">
               {alerts.slice(0, 6).map((alert) => (

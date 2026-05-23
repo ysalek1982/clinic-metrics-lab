@@ -1,17 +1,20 @@
 import { MODULE_AREAS, type ModuleArea, type ModuleDefinition } from "@/config/moduleRegistry";
+import { explainBlockedFeature, hasPlanFeature, type SubscriptionSnapshot } from "@/lib/subscriptionAccess";
 
 export type ModuleAccessInput = {
   hasPermission?: (permission: string) => boolean;
   enabledPacks?: string[];
   enabledModules?: Array<{ moduleId: string; enabled?: boolean; packId?: string }>;
   hasTenant?: boolean;
+  subscription?: SubscriptionSnapshot | null;
+  bypassPlanGate?: boolean;
 };
 
 export type ModuleAccessState = {
   canOpen: boolean;
   visible: boolean;
   disabled: boolean;
-  label: "Activo" | "Proximamente" | "Bloqueado" | "Requiere permiso";
+  label: "Activo" | "Proximamente" | "Bloqueado" | "Requiere permiso" | "Requiere plan";
   reason?: string;
 };
 
@@ -31,13 +34,23 @@ export function getModuleAccess(module: ModuleDefinition, input: ModuleAccessInp
     };
   }
 
+  if (module.planFeature && !input.bypassPlanGate && !hasPlanFeature(input.subscription, module.planFeature)) {
+    return {
+      canOpen: false,
+      visible: false,
+      disabled: true,
+      label: "Requiere plan",
+      reason: explainBlockedFeature(input.subscription, module.planFeature),
+    };
+  }
+
   if (module.requiresTenant && !hasTenant) {
     return {
       canOpen: false,
       visible: true,
       disabled: true,
       label: "Bloqueado",
-      reason: "No hay organizacion activa.",
+      reason: "No hay espacio activo.",
     };
   }
 
@@ -47,7 +60,7 @@ export function getModuleAccess(module: ModuleDefinition, input: ModuleAccessInp
       visible: true,
       disabled: true,
       label: "Bloqueado",
-      reason: `Pack ${module.pack} no habilitado para el tenant activo.`,
+      reason: `Pack ${module.pack} no habilitado para el espacio activo.`,
     };
   }
 
@@ -58,7 +71,7 @@ export function getModuleAccess(module: ModuleDefinition, input: ModuleAccessInp
       visible: true,
       disabled: true,
       label: "Bloqueado",
-      reason: "Modulo deshabilitado para el tenant activo.",
+      reason: "Modulo deshabilitado para el espacio activo.",
     };
   }
 
@@ -113,7 +126,7 @@ export function searchModules(modules: ModuleDefinition[], query: string) {
   const normalized = normalizeText(query);
   if (!normalized) return modules;
   return modules.filter((module) =>
-    [module.id, module.label, module.description, module.area, module.permission, module.pack, module.pending, module.blockedReason]
+    [module.id, module.label, module.description, module.area, module.permission, module.planFeature, module.pack, module.pending, module.blockedReason]
       .filter(Boolean)
       .some((value) => normalizeText(String(value)).includes(normalized)),
   );

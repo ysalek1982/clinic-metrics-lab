@@ -31,11 +31,11 @@ const statusClasses: Record<ModuleStatus, string> = {
 export default function ModulesCenter() {
   const [query, setQuery] = useState("");
   const [area, setArea] = useState<AreaFilter>("all");
-  const { modules } = useModuleRegistry(query);
+  const { visibleModules } = useModuleRegistry(query);
 
   const filteredModules = useMemo(
-    () => modules.filter((module) => area === "all" || module.area === area),
-    [area, modules],
+    () => visibleModules.filter((module) => area === "all" || module.area === area),
+    [area, visibleModules],
   );
   const groups = useMemo(() => groupModulesByArea(filteredModules), [filteredModules]);
   const activeCount = filteredModules.filter((module) => module.access.canOpen).length;

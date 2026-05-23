@@ -16,6 +16,8 @@ import {
 } from "@/hooks/useClinicalData";
 import { useTenantRuntime } from "@/hooks/useTenantRuntime";
 import { useAuthorization } from "@/hooks/useAuthorization";
+import { useTenantSubscription } from "@/hooks/useSubscription";
+import { explainBlockedFeature, hasPlanFeature, type SubscriptionSnapshot } from "@/lib/subscriptionAccess";
 import { resolveViewSource } from "@/lib/view-source";
 import type { PackId } from "@/types/domain";
 import type { ClinicalModuleId } from "@/types/saas";
@@ -30,8 +32,21 @@ const MODULE_READ_PERMISSIONS: Record<ClinicalModuleId, string[]> = {
   clinical_caseboard: ["patients.read"],
   pediatric_curves: ["pediatric_growth.read"],
   gineco_follow_up: ["patients.read"],
-  enteral_cockpit: ["enteral.read"],
+  enteral_cockpit: ["enteral.read", "enteral.manage"],
   sport_somatocarta: ["sports.manage", "ccorp_level1.read", "patients.read"],
+};
+
+const PACK_PLAN_FEATURES: Partial<Record<PackId, string[]>> = {
+  enteral: ["enteral.read", "enteral.manage"],
+  parenteral: ["parenteral.read", "parenteral.manage"],
+  pediatric: ["pediatric.read"],
+  sport: ["sports.read"],
+};
+
+const MODULE_PLAN_FEATURES: Partial<Record<ClinicalModuleId, string[]>> = {
+  pediatric_curves: ["pediatric.read"],
+  enteral_cockpit: ["enteral.read", "enteral.manage"],
+  sport_somatocarta: ["sports.read"],
 };
 
 export default function PackView() {
@@ -40,6 +55,7 @@ export default function PackView() {
   const { isAuthenticated } = useAuth();
   const { activeTenant, moduleCatalog, setActivePack } = useTenantRuntime();
   const { hasPermission } = useAuthorization();
+  const { data: subscription } = useTenantSubscription(activeTenant?.id);
   const { data: patientResult } = useTenantPatients();
   const { data: alertResult } = useTenantAlerts();
   const { data: screeningResult } = useTenantScreenings();
@@ -84,6 +100,16 @@ export default function PackView() {
     );
   }
 
+  const packPlanFeatures = PACK_PLAN_FEATURES[pack.id] ?? [];
+  if (packPlanFeatures.length > 0 && !hasAnyPlanFeature(subscription, packPlanFeatures)) {
+    return (
+      <StatePanel
+        title="Modulo bloqueado por plan"
+        body={explainBlockedFeature(subscription, packPlanFeatures[0])}
+      />
+    );
+  }
+
   const activeModule = moduleSlug ? enabledModulesForPack.find((module) => module.slug === moduleSlug) : null;
   if (moduleSlug && !activeModule) {
     return (
@@ -95,6 +121,16 @@ export default function PackView() {
   }
 
   if (activeModule) {
+    const requiredPlanFeatures = MODULE_PLAN_FEATURES[activeModule.moduleId] ?? [];
+    if (requiredPlanFeatures.length > 0 && !hasAnyPlanFeature(subscription, requiredPlanFeatures)) {
+      return (
+        <StatePanel
+          title="Modulo bloqueado por plan"
+          body={explainBlockedFeature(subscription, requiredPlanFeatures[0])}
+        />
+      );
+    }
+
     const requiredPermissions = MODULE_READ_PERMISSIONS[activeModule.moduleId] ?? ["patients.read"];
     if (!hasPermission(...requiredPermissions)) {
       return (
@@ -205,6 +241,10 @@ export default function PackView() {
       </div>
     </div>
   );
+}
+
+function hasAnyPlanFeature(subscription: SubscriptionSnapshot | null | undefined, featureKeys: string[]) {
+  return featureKeys.some((featureKey) => hasPlanFeature(subscription, featureKey));
 }
 
 function StatePanel({ title, body }: { title: string; body: string }) {

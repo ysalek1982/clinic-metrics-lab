@@ -11,13 +11,17 @@ export default function TenantSelector() {
   const { activationRequired } = useAuth();
   const { isPlatformSuperadmin } = useAuthorization();
   const { activeTenant, plans, setActiveTenant, source, tenants, isLoading } = useTenantRuntime();
+  const selectorTitle = isPlatformSuperadmin ? "Selector de tenants" : "Mis espacios";
+  const selectorSubtitle = isPlatformSuperadmin
+    ? "Cambia entre tenants aislados. Cada tenant conserva su plan, branding, packs y limites."
+    : "Elige tu espacio personal o profesional. Las cuentas Free trabajan como espacio propio, no como organizacion institucional.";
 
   return (
     <div>
       <PageHeader
-        meta={`Selector de workspaces · ${source}`}
-        title="Selector de tenant"
-        subtitle="Cambia entre organizaciones aisladas. Cada tenant conserva su plan, branding, packs y límites."
+        meta={`Selector de espacios - ${source}`}
+        title={selectorTitle}
+        subtitle={selectorSubtitle}
         actions={
           isPlatformSuperadmin ? (
             <Button asChild size="sm" className="h-8 border-0 text-primary-foreground gradient-primary">
@@ -31,8 +35,8 @@ export default function TenantSelector() {
         {!isLoading && tenants.length === 0 && (
           <div className="panel p-5 text-[13px] text-muted-foreground">
             {activationRequired
-              ? "Tu usuario aún no tiene membresías activas. Canjea una invitación para habilitar el tenant."
-              : "No hay tenants visibles en el catálogo activo."}
+              ? "Tu usuario aun no tiene membresias activas. Canjea una invitacion o solicita una cuenta Free."
+              : "No hay espacios visibles en el catalogo activo."}
           </div>
         )}
 
@@ -63,7 +67,7 @@ export default function TenantSelector() {
                     {active && <CheckCircle2 className="h-4 w-4 text-primary" />}
                   </div>
                   <div className="mt-1 text-[11px] text-muted-foreground">
-                    {plan?.name ?? tenant.planId} · {tenant.status} · {tenant.region}
+                    {plan?.name ?? tenant.planId} - {tenant.status} - {tenant.region}
                   </div>
                   <div className="mt-4 grid grid-cols-4 gap-2">
                     <Metric label="Usuarios" value={tenant.usage?.users ?? 0} />
@@ -95,14 +99,16 @@ export default function TenantSelector() {
         <div className="flex gap-2">
           {activationRequired && (
             <Button asChild size="sm" className="border-0 text-primary-foreground gradient-primary">
-              <Link to="/activate">Canjear invitación</Link>
+              <Link to="/activate">Canjear invitacion</Link>
             </Button>
           )}
-          <Button asChild variant="outline" size="sm">
-            <Link to="/app/platform">
-              Abrir dashboard SaaS <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
-            </Link>
-          </Button>
+          {isPlatformSuperadmin && (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/app/platform">
+                Abrir dashboard SaaS <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </div>
