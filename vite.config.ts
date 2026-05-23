@@ -40,10 +40,6 @@ export default defineConfig(({ mode }) => ({
             return "vendor-icons";
           }
 
-          if (id.includes("recharts") || id.includes("d3-")) {
-            return "vendor-charts";
-          }
-
           if (id.includes("jspdf")) {
             return "vendor-pdf";
           }
