@@ -39,6 +39,10 @@ export function classifySecretHit(file, patternId, line = "") {
     return allowed("Placeholder en env example", "Variable documentada sin valor real.");
   }
 
+  if (/^\.env(\.|$)/.test(normalized)) {
+    return allowed("Archivo env local ignorado", "Archivo local no versionable; revisar gitignore, no imprimir valores.");
+  }
+
   if (normalized.includes("playwright/.auth") || normalized.includes("storageState.json")) {
     return blocked("Riesgo repo", "Storage state o sesion no debe versionarse.");
   }

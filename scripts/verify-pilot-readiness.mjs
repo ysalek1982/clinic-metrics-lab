@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
 const artifactDir = path.join(repoRoot, "artifacts", "readiness");
+loadEnvFile(path.join(repoRoot, ".env.local"));
 
 const envChecks = [
   "SUPABASE_ACCESS_TOKEN",
@@ -35,8 +36,8 @@ const blockers = {
   edgeFunctionDeploy: hasEnv("SUPABASE_ACCESS_TOKEN") ? "ready" : "blocked: SUPABASE_ACCESS_TOKEN missing",
   dbPush: hasEnv("SUPABASE_DB_PASSWORD") ? "ready" : "blocked: SUPABASE_DB_PASSWORD missing",
   qaUsers: qaUsersReady() ? "ready" : "blocked: QA Auth users/credentials missing",
-  enteralE2e: hasEnv("E2E_EMAIL") && hasEnv("E2E_PASSWORD") ? "ready" : "blocked: E2E_EMAIL/E2E_PASSWORD missing",
-  reportExportAudit: hasEnv("E2E_EMAIL") && hasEnv("E2E_PASSWORD") ? "ready" : "blocked: authenticated audit evidence missing",
+  enteralE2e: enteralEvidenceReady() ? "ready: authenticated evidence present" : "blocked: E2E_EMAIL/E2E_PASSWORD missing",
+  reportExportAudit: reportExportEvidenceReady() ? "ready: report.exported evidence present" : "blocked: authenticated audit evidence missing",
   pediatricWho: hasOfficialWhoFiles() ? "ready: candidate reference files found" : "blocked: official WHO/OMS CSV files missing",
 };
 const smoke = await runSmoke();
@@ -73,6 +74,7 @@ function hasEnv(name) {
 }
 
 function qaUsersReady() {
+  if (hasPassedResult(latestArtifact("artifacts/authenticated-functional", /^authenticated-functional-/))) return true;
   return [
     "QA_TENANT_B_ID",
     "QA_NO_MEMBERSHIP_EMAIL",
@@ -82,6 +84,15 @@ function qaUsersReady() {
     "QA_TENANT_B_EMAIL",
     "QA_TENANT_B_PASSWORD",
   ].every(hasEnv);
+}
+
+function enteralEvidenceReady() {
+  return hasPassedResult(path.join(repoRoot, "artifacts", "e2e", "enteral-f9i", "result.json"));
+}
+
+function reportExportEvidenceReady() {
+  const payload = readJson(path.join(repoRoot, "artifacts", "e2e", "reports-export", "result.json"));
+  return Boolean(payload?.blockedReason === null && Array.isArray(payload?.auditEvents?.["report.exported"]) && payload.auditEvents["report.exported"].length >= 2);
 }
 
 function hasOfficialWhoFiles() {
@@ -147,4 +158,43 @@ function sanitizeOutput(value) {
     .filter(Boolean)
     .filter((line) => !/password|token|secret/i.test(line))
     .slice(-8);
+}
+
+function latestArtifact(relativeDir, pattern) {
+  const dir = path.join(repoRoot, relativeDir);
+  if (!fs.existsSync(dir)) return "";
+  const files = fs
+    .readdirSync(dir)
+    .filter((name) => pattern.test(name))
+    .map((name) => path.join(dir, name))
+    .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+  return files[0] ?? "";
+}
+
+function hasPassedResult(filePath) {
+  const payload = readJson(filePath);
+  return Boolean(payload && (payload.status === "passed" || payload.blockedReason === null));
+}
+
+function readJson(filePath) {
+  if (!filePath || !fs.existsSync(filePath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function loadEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) return;
+  const content = fs.readFileSync(filePath, "utf8");
+  for (const line of content.split(/\r?\n/)) {
+    const match = line.match(/^\s*(?:\$env:)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+    if (!match || process.env[match[1]]) continue;
+    let value = match[2].trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    process.env[match[1]] = value;
+  }
 }

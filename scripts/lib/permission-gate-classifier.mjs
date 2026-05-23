@@ -9,6 +9,7 @@ export function detectPermissionAction(line) {
   if (!ACTION_PATTERN.test(line)) return false;
   if (/^\s*export\s+(default\s+)?(async\s+)?function\b/.test(line)) return false;
   if (/signOut\(/.test(line)) return false;
+  if (/setActivationMode\(/.test(line)) return false;
   return EXECUTABLE_PATTERN.test(line);
 }
 

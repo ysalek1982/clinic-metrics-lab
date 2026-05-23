@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import http from "node:http";
+import https from "node:https";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -16,16 +17,19 @@ const repoRoot = path.resolve(__dirname, "..");
 const artifactDir = path.join(repoRoot, "artifacts", "module-qa");
 const screenshotDir = path.join(artifactDir, "screenshots");
 const docsDir = path.join(repoRoot, "docs");
-const explicitBaseUrl = process.env.MODULE_QA_BASE_URL;
+const explicitBaseUrl = process.env.MODULE_QA_BASE_URL || process.env.QA_BASE_URL || process.env.QA_REMOTE_URL;
 let baseUrl = explicitBaseUrl || "http://127.0.0.1:4318";
 const storageStatePath = process.env.MODULE_QA_STORAGE_STATE || process.env.SMOKE_STORAGE_STATE;
 const authenticated = Boolean(storageStatePath && fs.existsSync(storageStatePath));
+const persona = process.env.MODULE_QA_PERSONA || (authenticated ? "authenticated" : "anonymous");
 const startedServer = { process: null };
 
 const routes = [
   "/app",
+  "/app/account",
   "/app/modules",
   "/app/module-settings",
+  "/app/saas-admin",
   "/app/copilot",
   "/app/patients",
   "/app/anthropometry",
@@ -51,8 +55,10 @@ const routes = [
 
 const routeFiles = {
   "/app": "src/pages/app/Dashboard.tsx",
+  "/app/account": "src/pages/app/Account.tsx",
   "/app/modules": "src/pages/app/ModulesCenter.tsx",
   "/app/module-settings": "src/pages/app/ModuleSettings.tsx",
+  "/app/saas-admin": "src/pages/app/SaasAdmin.tsx",
   "/app/copilot": "src/pages/app/Copilot.tsx",
   "/app/patients": "src/pages/app/Patients.tsx",
   "/app/anthropometry": "src/pages/app/Anthropometry.tsx",
@@ -237,6 +243,7 @@ try {
       textLength: bodyText.length,
       elementCount,
       authenticated,
+      persona,
       findings: [...new Set(isAuthGate ? ["auth_required_sin_storage_state", ...filteredFindings] : filteredFindings)],
       severity,
       pageErrors: newPageErrors,
@@ -256,10 +263,16 @@ try {
     generatedAt: new Date().toISOString(),
     baseUrl,
     authenticated,
+    persona,
     status,
     results,
   });
-  writeDoc({ status, results, artifactPath, note: authenticated ? "QA autenticado con storage state." : "QA autenticado no ejecutado por falta de storage state." });
+  writeDoc({
+    status,
+    results,
+    artifactPath,
+    note: authenticated ? `QA autenticado con storage state (${persona}).` : "QA autenticado no ejecutado por falta de storage state.",
+  });
   console.log(`QA modulo por modulo: ${status}. Artifact: ${artifactPath}`);
   if (status === "failed") process.exitCode = 1;
 } finally {
@@ -319,6 +332,7 @@ Generado: ${new Date().toISOString()}
 - Estado: ${status}
 - Base URL: \`${baseUrl}\`
 - Autenticado: ${authenticated ? "si" : "no"}
+- Persona: \`${persona}\`
 - Nota: ${note}
 - Artifact: \`${path.relative(repoRoot, artifactPath).replace(/\\/g, "/")}\`
 
@@ -331,7 +345,8 @@ ${rows}
 
 function isReachable(url) {
   return new Promise((resolve) => {
-    const request = http.get(url, (response) => {
+    const client = url.startsWith("https:") ? https : http;
+    const request = client.get(url, (response) => {
       response.resume();
       resolve(response.statusCode >= 200 && response.statusCode < 500);
     });

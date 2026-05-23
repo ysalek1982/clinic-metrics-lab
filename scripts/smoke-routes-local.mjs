@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import http from "node:http";
+import https from "node:https";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -14,6 +15,7 @@ const routes = [
   "/app",
   "/app/modules",
   "/app/module-settings",
+  "/app/saas-admin",
   "/app/copilot",
   "/app/patients",
   "/app/anthropometry",
@@ -254,7 +256,8 @@ ${rows}
 
 function isReachable(url) {
   return new Promise((resolve) => {
-    const request = http.get(url, (response) => {
+    const client = url.startsWith("https:") ? https : http;
+    const request = client.get(url, (response) => {
       response.resume();
       resolve(response.statusCode >= 200 && response.statusCode < 500);
     });

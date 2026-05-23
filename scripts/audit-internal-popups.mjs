@@ -26,6 +26,7 @@ const routeFiles = [
   { route: "/app/pack/enteral/cockpit", file: "src/pages/app/pack-modules/EnteralCockpit.tsx" },
   { route: "/app/pack/parenteral", file: "src/pages/app/pack-modules/ParenteralBase.tsx" },
   { route: "/app/users", file: "src/pages/app/UsersRoles.tsx" },
+  { route: "/app/saas-admin", file: "src/pages/app/SaasAdmin.tsx" },
   { route: "/app/copilot", file: "src/pages/app/Copilot.tsx" },
   { route: "/app/foods", file: "src/pages/app/Foods.tsx" },
   { route: "/app/messages", file: "src/pages/app/Messages.tsx" },

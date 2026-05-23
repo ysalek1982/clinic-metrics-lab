@@ -1,3 +1,11 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(__dirname, "..");
+loadEnvFile(path.join(repoRoot, ".env.local"));
+
 function hasEnv(name) {
   return typeof process.env[name] === "string" && process.env[name].trim().length > 0;
 }
@@ -22,9 +30,9 @@ const checks = [
   },
   {
     title: "Ejecutar E2E Enteral",
-    ready: allEnv(["E2E_EMAIL", "E2E_PASSWORD"]),
+    ready: allEnv(["E2E_EMAIL", "E2E_PASSWORD"]) || hasPassedResult(path.join(repoRoot, "artifacts", "e2e", "enteral-f9i", "result.json")),
     missing: ["E2E_EMAIL", "E2E_PASSWORD"].filter((name) => !hasEnv(name)),
-    command: "node scripts/e2e-enteral-flow.mjs",
+    command: "npm run e2e:enteral",
   },
   {
     title: "Ejecutar QA Seguridad P0",
@@ -36,7 +44,7 @@ const checks = [
       "QA_TENANT_B_EMAIL",
       "QA_TENANT_B_PASSWORD",
       "QA_TENANT_B_ID",
-    ]),
+    ]) || hasPassedResult(latestArtifact("artifacts/authenticated-functional", /^authenticated-functional-/)),
     missing: [
       "QA_NO_MEMBERSHIP_EMAIL",
       "QA_NO_MEMBERSHIP_PASSWORD",
@@ -46,13 +54,13 @@ const checks = [
       "QA_TENANT_B_PASSWORD",
       "QA_TENANT_B_ID",
     ].filter((name) => !hasEnv(name)),
-    command: "node scripts/qa-security-p0.mjs",
+    command: "npm run qa:security-p0",
   },
   {
     title: "Confirmar report.exported en /app/audit",
-    ready: allEnv(["E2E_EMAIL", "E2E_PASSWORD"]),
+    ready: allEnv(["E2E_EMAIL", "E2E_PASSWORD"]) || reportExportEvidenceReady(),
     missing: ["E2E_EMAIL", "E2E_PASSWORD"].filter((name) => !hasEnv(name)),
-    command: "Abrir /app/reports, exportar PDF/XLSX autenticado y verificar /app/audit.",
+    command: "npm run e2e:report-export",
   },
 ];
 
@@ -74,3 +82,47 @@ for (const check of checks) {
 
 console.log("\nBLOQUEADO POR INSUMO CLINICO:");
 console.log("- Pediatria WHO/OMS: agregar CSV oficiales normalizados antes de importar referencias.");
+
+function reportExportEvidenceReady() {
+  const payload = readJson(path.join(repoRoot, "artifacts", "e2e", "reports-export", "result.json"));
+  return Boolean(payload?.blockedReason === null && Array.isArray(payload?.auditEvents?.["report.exported"]) && payload.auditEvents["report.exported"].length >= 2);
+}
+
+function latestArtifact(relativeDir, pattern) {
+  const dir = path.join(repoRoot, relativeDir);
+  if (!fs.existsSync(dir)) return "";
+  const files = fs
+    .readdirSync(dir)
+    .filter((name) => pattern.test(name))
+    .map((name) => path.join(dir, name))
+    .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+  return files[0] ?? "";
+}
+
+function hasPassedResult(filePath) {
+  const payload = readJson(filePath);
+  return Boolean(payload && (payload.status === "passed" || payload.blockedReason === null));
+}
+
+function readJson(filePath) {
+  if (!filePath || !fs.existsSync(filePath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function loadEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) return;
+  const content = fs.readFileSync(filePath, "utf8");
+  for (const line of content.split(/\r?\n/)) {
+    const match = line.match(/^\s*(?:\$env:)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+    if (!match || process.env[match[1]]) continue;
+    let value = match[2].trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    process.env[match[1]] = value;
+  }
+}

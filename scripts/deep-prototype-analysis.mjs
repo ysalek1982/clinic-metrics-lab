@@ -29,6 +29,7 @@ const prototypeRoutes = [
 
 const nutriRoutes = [
   "/app",
+  "/app/saas-admin",
   "/app/copilot",
   "/app/patients",
   "/app/anthropometry",
