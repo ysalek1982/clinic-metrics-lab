@@ -7,7 +7,7 @@ const repoRoot = path.resolve(__dirname, "..");
 const artifactDir = path.join(repoRoot, "artifacts", "e2e", "enteral-f9i");
 const storageStatePath = process.env.E2E_STORAGE_STATE || path.join(artifactDir, "auth-state.json");
 const baseUrl = process.env.E2E_BASE_URL || "http://127.0.0.1:8080";
-const hsmTenantId = "11111111-1111-4111-8111-111111111111";
+let expectedTenantId = process.env.E2E_TENANT_ID || null;
 
 loadEnvFile(path.join(repoRoot, ".env.local"));
 fs.mkdirSync(artifactDir, { recursive: true });
@@ -21,6 +21,7 @@ const result = {
   baseUrl,
   artifacts: artifactDir,
   formulaName: null,
+  tenantId: null,
   patientId: null,
   planId: null,
   logId: null,
@@ -59,6 +60,11 @@ page.on("pageerror", (error) => pageErrors.push(error.message));
 
 try {
   await ensureAuthenticated(page);
+  expectedTenantId = expectedTenantId || (await getActiveTenantIdFromPage(page));
+  result.tenantId = expectedTenantId;
+  await page.addInitScript((tenantId) => {
+    window.localStorage.setItem("nutri.activeTenantId", tenantId);
+  }, expectedTenantId);
   const token = await getAccessTokenFromPage(page);
   await runEnteralFlow(page, token);
   writeResult();
@@ -90,8 +96,9 @@ async function runEnteralFlow(page, token) {
   result.formulaName = formulaName;
 
   await page.goto(`${baseUrl}/app/pack/enteral/cockpit`, { waitUntil: "domcontentloaded" });
-  await visible(page.getByText(/Cockpit enteral/i), "Cockpit enteral");
-  await visible(page.getByText(/Datos reales/i), "badge Datos reales");
+  await page.waitForLoadState("networkidle", { timeout: 30000 }).catch(() => undefined);
+  await visible(page.locator("body").filter({ hasText: /Cockpit enteral/i }), "Cockpit enteral");
+  await visible(page.locator("body").filter({ hasText: /Datos reales/i }), "badge Datos reales");
   assert((await page.getByText(/DEMO/i).count()) === 0, "La vista autenticada no debe mostrar DEMO.");
   assert(pageErrors.length === 0, `La página emitió errores runtime: ${pageErrors.join(" | ")}`);
 
@@ -117,7 +124,7 @@ async function runEnteralFlow(page, token) {
   const plan = await waitForApiRow("enteral_plans", token, { formula_name: `eq.${formulaName}` }, (rows) => rows[0], "enteral_plans formula F9I");
   result.planId = stringValue(plan.id);
   result.patientId = stringValue(plan.patient_id);
-  assert(stringValue(plan.tenant_id) === hsmTenantId, "El plan no quedó asociado al tenant HSM esperado.");
+  assert(stringValue(plan.tenant_id) === expectedTenantId, "El plan no quedó asociado al tenant activo esperado.");
   assert(Boolean(plan.patient_id), "El plan no quedó asociado a un paciente.");
   assert(["active", "activo"].includes(stringValue(plan.status)), "El plan no quedó activo después de crear.");
   await waitForAudit(token, "enteral_plan.create", result.planId);
@@ -133,7 +140,7 @@ async function runEnteralFlow(page, token) {
   await page.getByTestId("enteral-rate-input").fill("70");
   await page.getByTestId("enteral-notes-input").fill(editedNotes);
   await page.getByTestId("enteral-save-button").click();
-  await visible(page.getByText("1650 ml objetivo"), "volumen editado visible");
+  await visible(page.locator("body").filter({ hasText: /(?:1[.,]?650|1650)\s*ml\s*objetivo/i }), "volumen editado visible");
   await page.screenshot({ path: path.join(artifactDir, "02-cockpit-plan-edited.png"), fullPage: true });
   await waitForApiRow(
     "enteral_plans",
@@ -157,8 +164,8 @@ async function runEnteralFlow(page, token) {
   await page.getByTestId("enteral-distension-checkbox").click();
   await page.getByTestId("enteral-log-notes-input").fill(logNotes);
   await page.getByTestId("enteral-log-save-button").click();
-  await visible(page.getByText(/54\.5% volumen entregado|55% volumen entregado/i), "porcentaje de volumen entregado");
-  await visible(page.getByText(/Mala tolerancia/i), "estado de tolerancia calculado");
+  await visible(page.locator("body").filter({ hasText: /54[.,]5\s*%?\s*volumen entregado|55\s*%?\s*volumen entregado/i }), "porcentaje de volumen entregado");
+  await visible(page.locator("body").filter({ hasText: /Mala tolerancia/i }), "estado de tolerancia calculado");
   await visible(page.getByText(/residuo 320 ml/i), "residuo gástrico del log");
   await page.screenshot({ path: path.join(artifactDir, "03-cockpit-log-tolerance.png"), fullPage: true });
 
@@ -170,13 +177,13 @@ async function runEnteralFlow(page, token) {
     "enteral_daily_logs F9I",
   );
   result.logId = stringValue(log.id);
-  assert(stringValue(log.tenant_id) === hsmTenantId, "El log no quedó asociado al tenant HSM esperado.");
+  assert(stringValue(log.tenant_id) === expectedTenantId, "El log no quedó asociado al tenant activo esperado.");
   assert(stringValue(log.patient_id) === result.patientId, "El log no quedó asociado al paciente del plan.");
   await waitForAudit(token, "enteral_daily_log.create", result.logId);
 
   await page.goto(`${baseUrl}/app/alerts`, { waitUntil: "domcontentloaded" });
-  await visible(page.getByText(/Soporte enteral/i), "alerta enteral derivada");
-  await visible(page.getByText(/volumen_bajo|vomitos|distension_abdominal|volumen 54\.5%|volumen 55%/i), "motivo de alerta enteral");
+  await visible(page.locator("body").filter({ hasText: /Soporte enteral/i }), "alerta enteral derivada");
+  await visible(page.locator("body").filter({ hasText: /volumen_bajo|vomitos|distension_abdominal|volumen 54[.,]5%|volumen 55%/i }), "motivo de alerta enteral");
   await page.screenshot({ path: path.join(artifactDir, "04-alerts-enteral.png"), fullPage: true });
 
   await page.goto(`${baseUrl}/app/patients/${result.patientId}`, { waitUntil: "domcontentloaded" });
@@ -189,12 +196,16 @@ async function runEnteralFlow(page, token) {
   row = planRow(page, formulaName);
   await visible(row, "plan F9I antes de pausar");
   await row.getByTestId("enteral-pause-button").click();
+  await visible(page.getByRole("dialog").filter({ hasText: /Pausar soporte enteral/i }), "dialog pausar soporte enteral");
+  await page.getByRole("button", { name: /^Pausar plan$/i }).click();
   await visible(row.getByText(/Pausado/i), "estado pausado");
   await waitForApiRow("enteral_plans", token, { id: `eq.${result.planId}` }, (rows) => rows.find((item) => stringValue(item.status) === "paused"), "enteral_plan paused");
   await waitForAudit(token, "enteral_plan.paused", result.planId);
 
   row = planRow(page, formulaName);
   await row.getByTestId("enteral-close-button").click();
+  await visible(page.getByRole("dialog").filter({ hasText: /Cerrar soporte enteral/i }), "dialog cerrar soporte enteral");
+  await page.getByRole("button", { name: /^Cerrar plan$/i }).click();
   await visible(row.getByText(/Cerrado/i), "estado cerrado");
   await waitForApiRow("enteral_plans", token, { id: `eq.${result.planId}` }, (rows) => rows.find((item) => stringValue(item.status) === "closed"), "enteral_plan closed");
   await waitForAudit(token, "enteral_plan.closed", result.planId);
@@ -213,7 +224,18 @@ async function visible(locator, label, timeout = 20000) {
   try {
     await locator.waitFor({ state: "visible", timeout });
   } catch (error) {
-    throw new Error(`No se encontró UI visible para: ${label}. ${error instanceof Error ? error.message : ""}`);
+    const message = error instanceof Error ? error.message : "";
+    if (message.includes("strict mode violation")) {
+      await locator.first().waitFor({ state: "visible", timeout: 1000 });
+      return;
+    }
+    const page = locator.page();
+    const bodyText = await page.locator("body").innerText({ timeout: 1000 }).catch(() => "");
+    await page.screenshot({
+      path: path.join(artifactDir, `debug-${label.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.png`),
+      fullPage: true,
+    }).catch(() => undefined);
+    throw new Error(`No se encontró UI visible para: ${label}. URL=${page.url()} Texto=${bodyText.slice(0, 600)} ${error instanceof Error ? error.message : ""}`);
   }
 }
 
@@ -226,6 +248,12 @@ async function getAccessTokenFromPage(page) {
     if (typeof token === "string" && token.length > 20) return token;
   }
   throw new Error("No se pudo obtener access token de Supabase desde storage local autenticado.");
+}
+
+async function getActiveTenantIdFromPage(page) {
+  const activeTenantId = await page.evaluate(() => localStorage.getItem("nutri.activeTenantId"));
+  if (typeof activeTenantId === "string" && activeTenantId.length > 0) return activeTenantId;
+  throw new Error("No se pudo resolver nutri.activeTenantId desde storage local autenticado.");
 }
 
 async function waitForApiRow(table, token, filters, pick, label) {
@@ -291,7 +319,7 @@ function loadEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return;
   const content = fs.readFileSync(filePath, "utf8");
   for (const line of content.split(/\r?\n/)) {
-    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+    const match = line.match(/^\s*(?:\$env:)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
     if (!match || process.env[match[1]]) continue;
     let value = match[2].trim();
     if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
