@@ -1,10 +1,10 @@
 # Auditoria de uso demo
 
-Generado: 2026-05-20T11:58:04.767Z
+Generado: 2026-05-23T14:19:25.140Z
 
-- Artifact: `artifacts/security/demo-usage-2026-05-20T11-58-04-763Z.json`
+- Artifact: `artifacts/security/demo-usage-2026-05-23T14-19-25-137Z.json`
 - Regla: demo solo puede operar sin sesion autenticada o en tests/scripts.
-- Resumen: 204 hallazgos, 0 para revision.
+- Resumen: 206 hallazgos, 0 para revision.
 - Meta: 0 usos prohibidos en rutas autenticadas y 0 dudosos sin explicar.
 
 | Tipo | Total | Requiere revision |
@@ -12,7 +12,7 @@ Generado: 2026-05-20T11:58:04.767Z
 | Uso permitido sin sesion | 186 | 0 |
 | Uso permitido en tests | 3 | 0 |
 | Uso permitido en scripts de auditoria | 1 | 0 |
-| Uso permitido en docs | 14 | 0 |
+| Uso permitido en docs | 16 | 0 |
 
 ## Hallazgos que requieren revision
 

@@ -1,10 +1,10 @@
 # Auditoria de popups internos
 
-Generado: 2026-05-20T12:06:26.886Z
+Generado: 2026-05-23T15:23:35.038Z
 
 - Estado: passed
-- Artifact: `artifacts/ui-audit/internal-popups-2026-05-20T12-06-26-886Z.json`
-- Resumen: 193 acciones; 0 alto(s), 0 medio(s), 193 bajo(s).
+- Artifact: `artifacts/ui-audit/internal-popups-2026-05-23T15-23-35-038Z.json`
+- Resumen: 211 acciones; 0 alto(s), 0 medio(s), 211 bajo(s).
 - Regla: altas, ediciones y acciones sensibles deben usar Dialog, Drawer, Sheet o vista interna; no `window.open`, `alert`, `confirm` ni `prompt`.
 
 | Ruta | Accion | Estado actual | Riesgo | Accion recomendada |
@@ -159,6 +159,24 @@ Generado: 2026-05-20T12:06:26.886Z
 | `/app/users` | Actualizar rol | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
 | `/app/users` | {memberships.length > 0 ? "Membership visible" : "Crear en Supabase Auth si no existe"} | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
 | `/app/users` | La creacion de usuarios Auth usa la Edge Function segura admin-invite-user si esta desplegada. Si no responde, se debe crear el usuario en Supabase Dashboard y  | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | subtitle="Control de solicitudes, codigos, roles y membresias de cortesia. No crea usuarios Auth desde frontend." | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | Asignar plan | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | Crear codigo | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | title="Crear Auth users sigue siendo server-side" | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | Buscar usuario, revisar tenant, plan, roles y permisos efectivos sin exponer secretos ni crear Auth users desde frontend. | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | description="ysalek/platform_superadmin administra roles y permisos por RPC/servicios protegidos. Los usuarios normales no pueden autoasignarse roles, planes ni | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | Cerrar | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | <RoleSelect label="Rol a asignar/quitar" value={userRoleCode} onChange={setUserRoleCode} roleCodes={roleCodes} /> | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | Asignar rol | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | Actualizar estado | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | title="Crear codigo de invitacion" | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | submitLabel="Crear codigo" | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | title="Asignar plan al tenant" | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | submitLabel="Asignar plan" | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | title="Cancelar cortesia" | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | submitLabel="Cancelar cortesia" | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | Cancelar | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
+| `/app/saas-admin` | Cancelar cortesia | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
 | `/app/copilot` | sin acciones sensibles visibles en codigo | sin_acciones | bajo | Sin cambio requerido. |
 | `/app/foods` | setFormError(error instanceof Error ? error.message : "No se pudo crear el alimento."); | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |
 | `/app/foods` | <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button> | popup_interno | bajo | Mantener flujo interno con loading/error visible y evitar doble submit. |

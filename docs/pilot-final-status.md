@@ -17,6 +17,7 @@ Nutri queda preparado para piloto funcional controlado. No queda listo para prod
 - Reportes: vista previa, generacion de `report_runs`, reportes recientes y `report.generated`.
 - Copilot contextual: `/app/copilot` funcional como command center local con datos reales, reglas deterministicas, tareas operativas, timeline, consulta local, permiso `ai.assist`, enlaces internos y sin IA generativa.
 - Usuarios, roles y memberships: `/app/users`, RPCs admin, activar/desactivar/reactivar, upsert y asignar rol.
+- SaaS Admin: `/app/saas-admin` implementado para solicitudes de acceso, aprobacion/rechazo, codigos, planes, suscripciones y cortesias; migraciones SaaS aplicadas en remoto de desarrollo.
 - Enteral: render estable y flujo funcional aceptado previamente; automatizacion E2E queda pendiente por credenciales.
 - Parenteral: funcional basico controlado, no parenteral avanzado.
 - Deportivo: funcional con somatocarta condicionada a datos antropometricos suficientes; reporte deportivo real disponible.
@@ -28,6 +29,7 @@ Nutri queda preparado para piloto funcional controlado. No queda listo para prod
 - Exportaciones: PDF/XLSX reales iniciales, pero Fase 18A sigue abierta hasta confirmar `report.exported` visible en `/app/audit`.
 - QA Seguridad P0: bloqueado por falta de usuarios Auth QA confirmados y credenciales.
 - Edge Function `admin-invite-user`: implementada localmente, pendiente de despliegue remoto.
+- SaaS Admin remoto: migraciones SaaS aplicadas en Supabase remoto de desarrollo; no crea Auth users ni contrasenas desde frontend.
 - E2E Enteral automatizado: bloqueado por falta de `E2E_EMAIL` y `E2E_PASSWORD`.
 - Copilot: smoke autenticado y QA de permisos quedan pendientes hasta tener usuarios reales, pero el cierre local no usa demo ni servicios externos.
 
@@ -38,6 +40,39 @@ Nutri queda preparado para piloto funcional controlado. No queda listo para prod
 3. Credenciales E2E faltantes.
 4. CSV oficiales WHO/OMS no versionados en repo.
 5. `report.exported` no confirmado todavia en `/app/audit`.
+
+## Post RC visible en Vercel
+
+Fecha: 2026-05-21
+
+- La app responde en Vercel y las rutas protegidas redirigen a login sin crash en smoke no autenticado.
+- `scripts/module-by-module-qa.mjs` soporta `QA_REMOTE_URL` y HTTPS para validar Vercel sin desplegar.
+- `npm audit fix` normal redujo vulnerabilidades, pero quedan pendientes documentados en `docs/npm-audit-review.md`.
+- No se cerro QA P0, E2E Enteral, `report.exported`, Edge Function deploy ni Pediatria WHO completa.
+
+## SaaS comercial remoto
+
+Fecha: 2026-05-21
+
+- SaaS Admin queda activado en Supabase remoto de desarrollo para Free, Pro, Clinic/Hospital y Courtesy temporal.
+- Migraciones remotas aplicadas: `20260521153000`, `20260521165000`, `20260521172000` y patches `20260521183000`, `20260521184500`, `20260521190000`, `20260521190500`, `20260521191000`.
+- `free` queda operativo como plan base mediante RPC `ensure_free_subscription_for_current_user()`.
+- `courtesy` exige vencimiento y no se modela como plan comercial principal.
+- Billing real sigue desactivado: no Stripe, no tarjetas, no webhooks.
+- Marcela (`marcelacruz2000@gmail.com`) existe, esta confirmada, puede iniciar sesion, tiene tenant personal Free, rol `free_member` y plan `free` activo.
+- Marcela no tiene `platform_superadmin` ni `saas.manage`; RPC admin de asignacion de rol queda bloqueada para ella.
+- ysalek (`ysalek@gmail.com`) esta confirmado como `platform_superadmin` con permisos SaaS en remoto.
+- QA visual autenticada local de `/app/saas-admin` con ysalek ya pasa; queda QA P0 con usuarios reales.
+
+## Macrofase 45 - Auditoria funcional integral
+
+Fecha: 2026-05-21
+
+- Se corrigio la brecha P1 de SaaS Admin: la pestana `Usuarios` ahora consume memberships reales mediante RPC protegida y permite busqueda, detalle, roles, estado y permisos efectivos en drawer interno.
+- Se actualizaron `qa:saas-admin` y tests unitarios de helpers SaaS para cubrir la lista funcional de usuarios plataforma.
+- Se crearon `docs/deep-module-functional-audit.md` y `docs/full-system-module-audit.md`.
+- La nueva validacion visual autenticada queda pendiente en este entorno por falta de password/storage state disponible para ysalek y Marcela. La validacion autenticada previa se conserva como evidencia historica.
+- No se cerro QA P0, E2E Enteral, `report.exported`, Edge Function deploy ni Pediatria WHO completa.
 
 ## Reintento de cierre de bloqueos
 
@@ -343,3 +378,88 @@ Versionado/artifacts:
 
 - `artifacts/` conserva evidencia local de auditorias y smoke; revisar peso antes de commit.
 - `playwright/.auth`, `storageState.json`, `.env*`, `dist` y `build` deben mantenerse fuera de git.
+
+## SaaS Admin - Plan free, suscripciones y cortesias con vencimiento
+
+Estado: aplicado en Supabase remoto de desarrollo.
+
+- Se aplicaron migraciones incrementales para `subscription_plans`, `plan_entitlements`, `tenant_subscriptions` y `subscription_events`.
+- Planes comerciales activos: `free`, `pro`, `clinic_hospital`; `courtesy` queda como concesion temporal con vencimiento.
+- `free` se asegura por RPC `ensure_free_subscription_for_current_user()` sin autoescalamiento de privilegios.
+- `/app/saas-admin` administra planes, suscripciones, cortesias, invitaciones y solicitudes mediante servicios/RPCs protegidos.
+- Billing futuro queda deshabilitado: no hay Stripe, cobros, tarjetas ni webhooks.
+- Validacion local: `npm run qa:saas-subscriptions`.
+
+Pendiente antes de piloto real:
+
+- SaaS Admin ya fue validado visualmente en local con sesion ysalek: `/app/saas-admin` carga, tabs requeridas visibles y dialogs de plan/cortesia abren sin guardar.
+- Marcela Free ya fue validada visualmente en local: login OK, `/app` carga, no ve SaaS Admin y `/app/saas-admin` queda protegido.
+- Vercel produccion `https://clinic-metrics-lab.vercel.app` fue actualizado; `/app/saas-admin` ya no devuelve 404 y queda protegido por login/permiso.
+- Ejecutar QA Seguridad P0 con usuarios reales no-superadmin.
+- Otorgar Courtesy a Marcela solo si se decide probar premium.
+
+## Macrofase 46 - Deploy y cierre autenticado
+
+Fecha: 2026-05-21
+
+- El ultimo frontend con SaaS Admin Usuarios funcional fue desplegado a preview y produccion Vercel.
+- Preview: `https://clinic-metrics-nufozysjq-ysaleks-projects.vercel.app`.
+- Produccion: `dpl_8ABUwDGLWBFR7JpAfXDjaK2fsPyk`, alias `https://clinic-metrics-lab.vercel.app`.
+- Rutas remotas `/login`, `/app`, `/app/saas-admin`, `/app/modules`, `/app/module-settings`, `/app/copilot`, `/app/users` y `/app/audit` responden 200 como SPA/auth gate.
+- Se agregaron scripts seguros para desbloquear QA autenticado: `auth:storage`, `qa:security-p0`, `qa:plangate`.
+- No se pudo crear storage state de ysalek/Marcela/QA porque faltan passwords en entorno y `.env.local`.
+- QA P0 real, `report.exported` y E2E Enteral siguen sin cerrarse.
+## Fase 48 - SaaS comercial real
+
+Fecha: 2026-05-21.
+
+- SaaS Admin comercial validado con ysalek como platform admin.
+- Marcela queda restaurada a Free al final de la prueba.
+- QA Pro, Clinic/Hospital, Courtesy y No Membership fueron creados y validados.
+- `20260521221500_fix_saas_subscription_admin_rpc_ambiguity.sql` corrige RPC admin de suscripcion.
+- `20260521222500_fix_pro_reports_export_access.sql` alinea Reports para Pro/Courtesy/Clinic.
+- QA Seguridad P0 queda cerrado para alcance SaaS admin/planes/RPC; no cierra E2E Enteral ni `report.exported`.
+- Billing real sigue desactivado.
+
+## Macrofase 49 - cierre de bloqueos autenticados
+
+Fecha: 2026-05-22.
+
+- `report.exported` queda cerrado con evidencia autenticada: `npm run e2e:report-export`, PDF, Excel y eventos `report.exported` en `audit_logs`.
+- E2E Enteral queda cerrado con evidencia autenticada: `npm run e2e:enteral`, plan, edicion, control diario, alerta, PatientDetail, pausa, cierre y auditoria.
+- SaaS por plan queda revalidado con usuarios QA: ysalek, Marcela Free, QA Pro, QA Clinic/Hospital, QA Courtesy y QA No Membership.
+- Se aplico migracion remota `20260522193500_sync_plan_packs_modules.sql` para sincronizar packs/modulos por plan en tenants existentes.
+- Pendiente real: QA P0 clinico profundo por tabla/tenant-cross, Pediatria WHO completa con CSV oficiales, Edge Function `admin-invite-user`, y CRUD autenticado exhaustivo fuera de Enteral/Reports.
+## Macrofase 50 - Estado final 2026-05-23
+
+| Area | Estado | Evidencia | Pendiente |
+|---|---|---|---|
+| SaaS Free | Cerrado funcional | Marcela Free en produccion ve `Panel de mi espacio`, sin Organizacion institucional ni SaaS Admin | Ninguno critico |
+| Tema UI | Cerrado funcional | `ThemeToggle`, `useTheme`, tests de tema, produccion validada | Mobile fino |
+| SaaS Admin | Funcional | `qa:saas-admin`, `qa:saas-subscriptions`, `qa:functional-auth` | Mutaciones ampliadas con usuarios reales dedicados |
+| report.exported | Cerrado | `artifacts/e2e/reports-export/result.json` con `report.generated` y `report.exported` | Mas formatos y reportes por modulo |
+| Enteral E2E | Cerrado | `artifacts/e2e/enteral-f9i/result.json` con audit create/update/log/pause/close y RLS anon vacio | Mas escenarios clinicos |
+| Seguridad P0 | Listo por evidencia QA | `qa:security-p0` ready; `audit:secrets` limpio | Tenant-cross clinico amplio |
+| Pediatria WHO/OMS | Bloqueado | `verify:pilot` | CSV oficiales normalizados |
+
+Validacion final: build, lint, 165 tests, smoke, auditorias, visual parity, verify:pilot, SaaS QA, module QA e internal popups pasaron.
+# Macrofase 51 - Pilot Status Update
+
+Fecha local: 2026-05-23.
+
+Estado actualizado:
+
+- Tests unitarios: 166 passed.
+- `report.exported`: cerrado con PDF/XLSX y audit logs.
+- Enteral E2E: cerrado con create/update/log/pause/close y audit logs.
+- Parenteral E2E: cerrado como funcional basico con create/update/log/close y audit logs.
+- CRUD critico parcial: Pacientes, Agenda, Mensajes, Alertas, Labs, Foods, Recipes, WeeklyMenu, Pediatria y Deportivo validados con `qa:critical-crud`.
+- Mobile/light/dark: validado en produccion con 162 checks.
+- Free/Pro/Clinic/Courtesy: PlanGate y rutas protegidas revalidadas.
+
+Pendiente honesto:
+
+- Pediatria WHO/OMS completa requiere CSV oficiales normalizados.
+- Parenteral no debe presentarse como avanzado.
+- Billing real sigue desactivado.
+- Artifacts y storage states no deben versionarse.

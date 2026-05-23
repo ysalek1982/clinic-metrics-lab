@@ -1,10 +1,10 @@
 # Auditoría de paridad visual con prototipo
 
-Generado: 2026-05-18T05:14:28.736Z
+Generado: 2026-05-23T15:04:50.564Z
 
 - Prototipo: https://preview--clinic-metrics-lab.lovable.app/app
-- Nutri local: http://127.0.0.1:8082/app
-- Artifact JSON: `artifacts/visual-parity/prototype-parity-2026-05-18T05-14-28-730Z.json`
+- Nutri local: http://127.0.0.1:4316/app
+- Artifact JSON: `artifacts/visual-parity/prototype-parity-2026-05-23T15-04-50-561Z.json`
 - Error de setup: ninguno
 
 Esta auditoría usa el prototipo como referencia visual/interactiva. No copia datos demo ni reemplaza fuentes Supabase reales.

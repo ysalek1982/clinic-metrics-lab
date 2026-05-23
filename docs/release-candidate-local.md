@@ -1,9 +1,9 @@
 # Release candidate local Nutri
 
-Generado: 2026-05-18T05:14:40.227Z
+Generado: 2026-05-21T13:33:38.366Z
 
 - Estado: release_candidate_local_with_blockers
-- Artifact: `artifacts/release/release-candidate-local-2026-05-18T05-14-40-228Z.json`
+- Artifact: `artifacts/release/release-candidate-local-2026-05-21T13-33-38-367Z.json`
 - Regla: RC local no cierra bloqueos que requieren credenciales, usuarios Auth, evidencia autenticada o CSV oficiales.
 
 ## Comandos ejecutables
@@ -21,12 +21,12 @@ npm run unblock:steps
 
 | Area | Estado | Evidencia | Riesgo |
 |---|---|---|---|
-| Build/lint/tests/smoke | ready_local | `artifacts/readiness/pilot-readiness-2026-05-18T05-07-16-843Z.json` | Validacion local automatizada; no sustituye QA multi-tenant. |
-| Visual parity | ready_local | `artifacts/visual-parity/prototype-parity-2026-05-18T05-14-28-730Z.json` | Paridad local documentada; el prototipo es referencia visual, no datos. |
+| Build/lint/tests/smoke | ready_local | `artifacts/readiness/pilot-readiness-2026-05-21T03-55-32-744Z.json` | Validacion local automatizada; no sustituye QA multi-tenant. |
+| Visual parity | ready_local | `artifacts/visual-parity/prototype-parity-2026-05-21T13-33-33-688Z.json` | Paridad local documentada; el prototipo es referencia visual, no datos. |
 | Copilot contextual | ready_local | `artifacts/prototype-deep/prototype-deep-analysis-2026-05-13T06-10-14-065Z.json` | Asistente local protegido por ai.assist; tareas/timeline/consulta local; no usa IA generativa ni diagnostica. |
-| UI actions | ready_local | `artifacts/ui-audit/ui-actions-2026-05-18T05-12-11-238Z.json` | Riesgos criticos deben mantenerse en cero. |
-| Permission gates | ready_local | `artifacts/security/permission-gates-2026-05-18T05-13-07-978Z.json` | RLS/backend siguen siendo control final. |
-| Demo usage | ready_local | `artifacts/security/demo-usage-2026-05-18T05-13-06-949Z.json` | Validar nuevamente con sesion autenticada real. |
+| UI actions | ready_local | `artifacts/ui-audit/ui-actions-2026-05-21T13-32-23-017Z.json` | Riesgos criticos deben mantenerse en cero. |
+| Permission gates | ready_local | `artifacts/security/permission-gates-2026-05-21T13-32-29-866Z.json` | RLS/backend siguen siendo control final. |
+| Demo usage | ready_local | `artifacts/security/demo-usage-2026-05-21T13-32-29-955Z.json` | Validar nuevamente con sesion autenticada real. |
 | RLS/migrations | review_required | `artifacts/security/migrations-rls-2026-05-13T06-10-48-993Z.json` | No reemplaza QA P0 con usuarios reales. |
 | Edge Function deploy | blocked_credential | `supabase/functions/admin-invite-user/index.ts` | Falta token si sigue bloqueado. |
 | QA Seguridad P0 | blocked_users_or_credentials | `scripts/qa-security-p0.mjs` | Requiere usuarios Auth QA confirmados. |

@@ -1,18 +1,19 @@
 # Smoke de rutas locales
 
-Generado: 2026-05-20T12:08:23.718Z
+Generado: 2026-05-23T14:56:21.678Z
 
 - Estado: passed
-- Base URL: http://127.0.0.1:8082
+- Base URL: http://127.0.0.1:4314
 - Smoke autenticado: no
 - Nota: Smoke autenticado no ejecutado por falta de sesion.
-- Artifact: `artifacts/smoke/smoke-routes-local-2026-05-20T12-08-23-713Z.json`
+- Artifact: `artifacts/smoke/smoke-routes-local-2026-05-23T14-56-21-659Z.json`
 
 | Ruta | HTTP | Titulo visible | Hallazgos | Screenshot |
 |---|---:|---|---|---|
 | `/app` | 200 | Acceso seguro para equipos de nutrición premium. | OK | `artifacts/screenshots/smoke/app.png` |
 | `/app/modules` | 200 | Acceso seguro para equipos de nutrición premium. | OK | `artifacts/screenshots/smoke/app-modules.png` |
 | `/app/module-settings` | 200 | Acceso seguro para equipos de nutrición premium. | OK | `artifacts/screenshots/smoke/app-module-settings.png` |
+| `/app/saas-admin` | 200 | Acceso seguro para equipos de nutrición premium. | OK | `artifacts/screenshots/smoke/app-saas-admin.png` |
 | `/app/copilot` | 200 | Acceso seguro para equipos de nutrición premium. | OK | `artifacts/screenshots/smoke/app-copilot.png` |
 | `/app/patients` | 200 | Acceso seguro para equipos de nutrición premium. | OK | `artifacts/screenshots/smoke/app-patients.png` |
 | `/app/anthropometry` | 200 | Acceso seguro para equipos de nutrición premium. | OK | `artifacts/screenshots/smoke/app-anthropometry.png` |

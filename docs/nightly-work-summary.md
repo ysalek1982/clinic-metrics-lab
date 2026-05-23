@@ -78,6 +78,16 @@ Este informe resume el cierre de la tanda nocturna. No se ejecuto staging, commi
 
 ## Segunda tanda nocturna - modulos, menu configurable y popups internos
 
+## Post RC visible en Vercel - Macrofase 40
+
+| Area | Que se hizo | Evidencia | Estado | Pendiente |
+|---|---|---|---|---|
+| Diagnostico local/remoto | Se valido local y remoto contra Vercel sin cerrar QA autenticado. | `QA_REMOTE_URL=https://clinic-metrics-lab.vercel.app node scripts/module-by-module-qa.mjs`: passed; smoke remoto passed. | Listo localmente. | Validar con storage state y usuarios reales. |
+| QA modulo por modulo | El script ahora soporta `QA_BASE_URL`, `QA_REMOTE_URL` y HTTPS. | Artifact en `artifacts/module-qa/`. | Listo. | Mantener artifacts fuera de commit salvo decision explicita. |
+| Popups internos | Auditoria de popups paso sin P0/P1. | `node scripts/audit-internal-popups.mjs`: passed. | Listo localmente. | Validar formularios con sesion real. |
+| Dependencias | Se ejecuto `npm audit fix` normal, sin force. | Vulnerabilidades reducidas de 21 a 6; ver `docs/npm-audit-review.md`. | Mejorado. | `xlsx`, Vite major y jsdom major quedan como deuda. |
+| Vercel | Se verifico que la SPA responde en rutas clave protegidas por login. | `/login`, `/app`, `/app/copilot` y rutas principales pasan smoke no autenticado. | Visible. | No desplegar produccion sin autorizacion explicita. |
+
 Fecha/hora de cierre: 2026-05-18 01:19:19 -04:00
 
 | Area | Que se hizo | Evidencia | Estado | Pendiente |

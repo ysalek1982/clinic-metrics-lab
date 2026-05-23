@@ -1,16 +1,17 @@
 # Score local de rutas
 
-Generado: 2026-05-20T12:08:23.719Z
+Generado: 2026-05-23T14:56:21.681Z
 
-- Base URL: http://127.0.0.1:8082
+- Base URL: http://127.0.0.1:4314
 - Smoke autenticado: no
-- Artifact: `artifacts/smoke/smoke-routes-score-2026-05-20T12-08-23-716Z.json`
+- Artifact: `artifacts/smoke/smoke-routes-score-2026-05-23T14-56-21-673Z.json`
 
 | Ruta | Render | Contenido | Accesibilidad basica | Riesgo acciones | Demo | Mojibake | Estado |
 |---|---:|---:|---:|---:|---|---|---|
 | `/app` | 100 | 100 | 100 | 100 | none | none | pass |
 | `/app/modules` | 100 | 100 | 100 | 100 | none | none | pass |
 | `/app/module-settings` | 100 | 100 | 100 | 100 | none | none | pass |
+| `/app/saas-admin` | 100 | 100 | 100 | 100 | none | none | pass |
 | `/app/copilot` | 100 | 100 | 100 | 100 | none | none | pass |
 | `/app/patients` | 100 | 100 | 100 | 100 | none | none | pass |
 | `/app/anthropometry` | 100 | 100 | 100 | 100 | none | none | pass |

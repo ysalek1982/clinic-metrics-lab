@@ -1,17 +1,18 @@
 # Auditoria local de acciones UI
 
-Generado: 2026-05-20T12:06:48.819Z
+Generado: 2026-05-23T14:19:24.223Z
 
 - Estado: passed
-- Artifact: `artifacts/ui-audit/ui-actions-2026-05-20T12-06-48-821Z.json`
+- Artifact: `artifacts/ui-audit/ui-actions-2026-05-23T14-19-24-225Z.json`
 - Nota: si no hay storage state autenticado, varias rutas pueden renderizar login/forbidden en vez de la vista operativa.
-- Base URL: `http://127.0.0.1:8082`
+- Base URL: `http://127.0.0.1:4315`
 
 | Ruta | Total acciones | Riesgos altos | Riesgos medios | Proximamente/limitadas | Estado |
 |---|---:|---:|---:|---:|---|
 | `/app` | 4 | 0 | 0 | 0 | OK |
 | `/app/modules` | 4 | 0 | 0 | 0 | OK |
 | `/app/module-settings` | 4 | 0 | 0 | 0 | OK |
+| `/app/saas-admin` | 4 | 0 | 0 | 0 | OK |
 | `/app/copilot` | 4 | 0 | 0 | 0 | OK |
 | `/app/patients` | 4 | 0 | 0 | 0 | OK |
 | `/app/anthropometry` | 4 | 0 | 0 | 0 | OK |

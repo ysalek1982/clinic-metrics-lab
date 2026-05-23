@@ -1,18 +1,21 @@
 # QA modulo por modulo
 
-Generado: 2026-05-20T12:06:16.138Z
+Generado: 2026-05-23T15:23:34.699Z
 
 - Estado: passed
-- Base URL: `http://127.0.0.1:8082`
+- Base URL: `http://127.0.0.1:4318`
 - Autenticado: no
+- Persona: `anonymous`
 - Nota: QA autenticado no ejecutado por falta de storage state.
-- Artifact: `artifacts/module-qa/module-qa-2026-05-20T12-06-16-133Z.json`
+- Artifact: `artifacts/module-qa/module-qa-2026-05-23T15-23-34-696Z.json`
 
 | Ruta | Severidad | Titulo visible | Hallazgos | Acciones alto/medio | Screenshot |
 |---|---|---|---|---:|---|
 | `/app` | AUTH_REQUIRED | Acceso seguro para equipos de nutrición premium. | auth_required_sin_storage_state | 0/0 | `artifacts/module-qa/screenshots/app.png` |
+| `/app/account` | AUTH_REQUIRED | Acceso seguro para equipos de nutrición premium. | auth_required_sin_storage_state | 0/0 | `artifacts/module-qa/screenshots/app-account.png` |
 | `/app/modules` | AUTH_REQUIRED | Acceso seguro para equipos de nutrición premium. | auth_required_sin_storage_state | 0/0 | `artifacts/module-qa/screenshots/app-modules.png` |
 | `/app/module-settings` | AUTH_REQUIRED | Acceso seguro para equipos de nutrición premium. | auth_required_sin_storage_state | 0/0 | `artifacts/module-qa/screenshots/app-module-settings.png` |
+| `/app/saas-admin` | AUTH_REQUIRED | Acceso seguro para equipos de nutrición premium. | auth_required_sin_storage_state | 0/0 | `artifacts/module-qa/screenshots/app-saas-admin.png` |
 | `/app/copilot` | AUTH_REQUIRED | Acceso seguro para equipos de nutrición premium. | auth_required_sin_storage_state | 0/0 | `artifacts/module-qa/screenshots/app-copilot.png` |
 | `/app/patients` | AUTH_REQUIRED | Acceso seguro para equipos de nutrición premium. | auth_required_sin_storage_state | 0/0 | `artifacts/module-qa/screenshots/app-patients.png` |
 | `/app/anthropometry` | AUTH_REQUIRED | Acceso seguro para equipos de nutrición premium. | auth_required_sin_storage_state | 0/0 | `artifacts/module-qa/screenshots/app-anthropometry.png` |
