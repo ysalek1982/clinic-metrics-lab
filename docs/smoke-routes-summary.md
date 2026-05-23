@@ -1,12 +1,12 @@
 # Smoke de rutas locales
 
-Generado: 2026-05-23T15:27:27.422Z
+Generado: 2026-05-23T15:31:24.424Z
 
 - Estado: passed
 - Base URL: http://127.0.0.1:4314
 - Smoke autenticado: no
 - Nota: Smoke autenticado no ejecutado por falta de sesion.
-- Artifact: `artifacts/smoke/smoke-routes-local-2026-05-23T15-27-27-412Z.json`
+- Artifact: `artifacts/smoke/smoke-routes-local-2026-05-23T15-31-24-414Z.json`
 
 | Ruta | HTTP | Titulo visible | Hallazgos | Screenshot |
 |---|---:|---|---|---|

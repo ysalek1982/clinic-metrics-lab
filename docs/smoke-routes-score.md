@@ -1,10 +1,10 @@
 # Score local de rutas
 
-Generado: 2026-05-23T15:27:27.424Z
+Generado: 2026-05-23T15:31:24.425Z
 
 - Base URL: http://127.0.0.1:4314
 - Smoke autenticado: no
-- Artifact: `artifacts/smoke/smoke-routes-score-2026-05-23T15-27-27-419Z.json`
+- Artifact: `artifacts/smoke/smoke-routes-score-2026-05-23T15-31-24-420Z.json`
 
 | Ruta | Render | Contenido | Accesibilidad basica | Riesgo acciones | Demo | Mojibake | Estado |
 |---|---:|---:|---:|---:|---|---|---|
